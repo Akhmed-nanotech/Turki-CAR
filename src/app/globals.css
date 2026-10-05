@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0e1013;
+  --raised: #161b20;
+  --surface: #1c2228;
+  --line: #323941;
+  --text: #f3efe6;
+  --muted: #c4bdb0;
+  --faint: #9c958a;
+  --accent: #c4a265;
+  --accent-strong: #d4b378;
+  --on-accent: #1c160e;
+  --wa: #143026;
+  --wa-line: #3d6b54;
+  --wa-text: #d7efe4;
+  --wa-hover: #1c3d30;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-raised: var(--raised);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-on-accent: var(--on-accent);
+  --color-wa: var(--wa);
+  --color-wa-line: var(--wa-line);
+  --color-wa-text: var(--wa-text);
+  --color-wa-hover: var(--wa-hover);
+  --font-sans: var(--font-arabic), "Segoe UI", Tahoma, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 9rem;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      scroll-padding-top: 5.25rem;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-arabic), "Segoe UI", Tahoma, sans-serif;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  html[lang="en"] body {
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  section[id] {
+    scroll-margin-top: 9rem;
+  }
+
+  @media (min-width: 1024px) {
+    section[id] {
+      scroll-margin-top: 5.25rem;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--on-accent);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+[dir="rtl"] .arrow-forward {
+  transform: scaleX(-1);
+}
+
+.map-grid {
+  background-color: #12161a;
+  background-image:
+    linear-gradient(to right, rgb(196 162 101 / 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(196 162 101 / 0.14) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
