@@ -35,12 +35,8 @@ function readStored(): Locale {
   return "ar";
 }
 
-function hydrate() {
-  if (hydrated) {
-    return;
-  }
-  hydrated = true;
-  current = readStored();
+function emit() {
+  listeners.forEach((listener) => listener());
 }
 
 function subscribe(listener: () => void) {
@@ -49,7 +45,6 @@ function subscribe(listener: () => void) {
 }
 
 function getSnapshot(): Locale {
-  hydrate();
   return current;
 }
 
@@ -70,6 +65,17 @@ function setStoredLocale(next: Locale) {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  useEffect(() => {
+    if (!hydrated) {
+      hydrated = true;
+      const stored = readStored();
+      if (stored !== current) {
+        current = stored;
+        emit();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const apply = () => {

@@ -5,12 +5,12 @@
   --raised: #161b20;
   --surface: #1c2228;
   --line: #323941;
-  --text: #f3efe6;
-  --muted: #c4bdb0;
-  --faint: #9c958a;
-  --accent: #c4a265;
-  --accent-strong: #d4b378;
-  --on-accent: #1c160e;
+  --text: #f5f6f8;
+  --muted: #c5c8ce;
+  --faint: #9aa0a8;
+  --accent: #d31224;
+  --accent-strong: #b10e1d;
+  --on-accent: #ffffff;
   --wa: #143026;
   --wa-line: #3d6b54;
   --wa-text: #d7efe4;
@@ -99,10 +99,120 @@
   transform: scaleX(-1);
 }
 
-.map-grid {
-  background-color: #12161a;
-  background-image:
-    linear-gradient(to right, rgb(196 162 101 / 0.14) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(196 162 101 / 0.14) 1px, transparent 1px);
-  background-size: 40px 40px;
+.glass {
+  background: rgb(8 10 14 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.28);
+  backdrop-filter: blur(16px);
 }
+
+.glass-card {
+  background: rgb(8 10 14 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: 0 14px 32px rgb(0 0 0 / 0.24);
+  backdrop-filter: blur(14px);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  border-color: rgb(211 18 36 / 0.55);
+  background: rgb(12 14 18 / 0.72);
+}
+
+.glass-card.is-selected,
+.glass-card.is-selected:hover {
+  border-color: rgb(211 18 36 / 0.9);
+  background: rgb(18 12 14 / 0.82);
+  box-shadow: inset 0 0 0 1px rgb(211 18 36 / 0.35);
+}
+
+#service-detail,
+#services {
+  overflow-anchor: none;
+}
+
+.service-panel {
+  animation: panel-in 0.35s ease;
+}
+
+.map-plate {
+  background-color: #141920;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.workshop-bg {
+  transform: scale(1.06);
+  animation: workshop-drift 46s ease-in-out infinite alternate;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: reveal-fallback 0.01s 1.4s linear forwards;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+
+@keyframes workshop-drift {
+  from {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+
+@keyframes reveal-fallback {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .workshop-bg {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workshop-bg,
+  .reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .glass-card:hover,
+  .service-panel {
+    transform: none;
+    animation: none;
+  }
+}
+

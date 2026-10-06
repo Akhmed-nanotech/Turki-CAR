@@ -1,19 +1,22 @@
+"use client";
+
 import Image from "next/image";
 import { business } from "@/content/business";
+import { useLanguage } from "@/components/LanguageProvider";
 
-export function WorkshopVisual({ alt }: { alt: string }) {
+export function WorkshopVisual() {
+  const { copy } = useLanguage();
+
   return (
-    <figure className="overflow-hidden rounded-lg border border-line bg-surface">
+    <section aria-label={copy.hero.imageAlt} className="relative h-48 overflow-hidden sm:h-64 md:h-80">
       <Image
         src={business.workshopImage}
-        alt={alt}
-        width={1672}
-        height={941}
-        priority
-        sizes="(min-width: 1024px) 540px, 100vw"
-        className="h-auto w-full object-cover"
-        style={{ width: "100%", height: "auto" }}
+        alt={copy.hero.imageAlt}
+        fill
+        sizes="100vw"
+        className="object-cover object-[center_42%]"
       />
-    </figure>
+      <div className="absolute inset-0 bg-gradient-to-b from-[#07090d] via-[#07090d]/25 to-[#07090d]" />
+    </section>
   );
 }

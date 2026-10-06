@@ -8,6 +8,7 @@ export const business = {
   whatsappUrl: "https://wa.me/966540087150",
   mapsUrl: "https://maps.app.goo.gl/QCNzQW51NhFV4pPb7?g_st=ac",
   workshopImage: "/images/turki-car-workshop.png",
+  mechanicImage: "/images/mechanic.png",
 } as const;
 
 export function callHref(): string {

@@ -15,7 +15,7 @@ export function Footer() {
   const brand = locale === "ar" ? "تركي كار" : "Turki Car";
 
   return (
-    <footer className="border-t border-line bg-[#0a0c0e]">
+    <footer className="border-t border-white/10 bg-black/55 backdrop-blur-md">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <a href="#top" className="inline-flex rounded-sm">

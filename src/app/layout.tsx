@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { PageAtmosphere } from "@/components/PageAtmosphere";
 import "./globals.css";
 
 const arabic = IBM_Plex_Sans_Arabic({
@@ -25,15 +26,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e1013",
+  themeColor: "#07090d",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ar" dir="rtl" className={`${arabic.variable} h-full antialiased`}>
-      <body className="min-h-full bg-bg text-ink">
-        <LanguageProvider>{children}</LanguageProvider>
+      <body className="min-h-full bg-[#07090d] text-ink">
+        <PageAtmosphere />
+        <div className="relative z-10">
+          <LanguageProvider>{children}</LanguageProvider>
+        </div>
       </body>
     </html>
   );
