@@ -23,6 +23,28 @@ function clockFromMinutes(total: number) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
+/** Local calendar date as YYYY-MM-DD. Avoids UTC shifting the day. */
+function localDateInputValue(now = new Date()) {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function isPastBookingDate(value: string, today = localDateInputValue()) {
+  return value !== "" && value < today;
+}
+
+/** A start time has passed only when the chosen day is today in local time. */
+function isPastBookingTime(date: string, time: string, now = new Date()) {
+  if (date !== localDateInputValue(now) || !time) {
+    return false;
+  }
+  const [hours, minutes] = time.split(":").map(Number);
+  const slotStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+  return slotStart.getTime() < now.getTime();
+}
+
 /** Start times only. A slot must finish by closing, so 22:00 is not selectable. */
 function createBookingStartTimes(opening: string, closing: string, intervalMinutes: number) {
   const start = minutesFromClock(opening);
@@ -54,6 +76,7 @@ export function BookingDialog({
   const [vehicle, setVehicle] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const today = localDateInputValue();
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -97,7 +120,15 @@ export function BookingDialog({
 
   function confirmBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!date || !bookingStartTimes.includes(time) || !name.trim() || !phone.trim() || !vehicle.trim()) {
+    if (
+      !date ||
+      isPastBookingDate(date, today) ||
+      !bookingStartTimes.includes(time) ||
+      isPastBookingTime(date, time) ||
+      !name.trim() ||
+      !phone.trim() ||
+      !vehicle.trim()
+    ) {
       setError(copy.missing);
       return;
     }
@@ -150,8 +181,14 @@ export function BookingDialog({
         ) : (
           <form className="mt-5 space-y-3" onSubmit={confirmBooking}>
             <p className="text-sm text-muted">{copy.title}</p>
-            <Field label={copy.date} value={date} type="date" onChange={setDate} />
-            <TimeSlotField label={copy.time} value={time} slots={bookingStartTimes} onChange={setTime} />
+            <Field label={copy.date} value={date} type="date" min={today} onChange={setDate} />
+            <TimeSlotField
+              label={copy.time}
+              value={time}
+              slots={bookingStartTimes}
+              isUnavailable={(slot) => isPastBookingTime(date, slot)}
+              onChange={setTime}
+            />
             <Field label={copy.name} value={name} type="text" onChange={setName} autoComplete="name" />
             <Field
               label={copy.phone}
@@ -184,6 +221,7 @@ function Field({
   onChange,
   autoComplete,
   ltr = false,
+  min,
 }: {
   label: string;
   value: string;
@@ -191,6 +229,7 @@ function Field({
   onChange: (value: string) => void;
   autoComplete?: string;
   ltr?: boolean;
+  min?: string;
 }) {
   const id = useId();
   return (
@@ -200,9 +239,16 @@ function Field({
         id={id}
         type={type}
         value={value}
+        min={min}
         autoComplete={autoComplete}
         dir={ltr || type === "date" || type === "time" || type === "tel" ? "ltr" : undefined}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          const next = event.target.value;
+          if (min && next && next < min) {
+            return;
+          }
+          onChange(next);
+        }}
         className="min-h-12 w-full rounded-xl border border-white/15 bg-black/40 px-3 text-base text-ink outline-none"
       />
     </label>
@@ -213,11 +259,13 @@ function TimeSlotField({
   label,
   value,
   slots,
+  isUnavailable,
   onChange,
 }: {
   label: string;
   value: string;
   slots: readonly string[];
+  isUnavailable: (slot: string) => boolean;
   onChange: (value: string) => void;
 }) {
   const id = useId();
@@ -228,7 +276,13 @@ function TimeSlotField({
         id={id}
         value={value}
         dir="ltr"
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          const next = event.target.value;
+          if (next && isUnavailable(next)) {
+            return;
+          }
+          onChange(next);
+        }}
         className="min-h-12 w-full appearance-none rounded-xl border border-white/15 bg-black/40 bg-[length:0.7rem] bg-[position:right_0.85rem_center] bg-no-repeat pe-10 ps-3 text-base text-ink outline-none [color-scheme:dark]"
         style={{
           backgroundImage:
@@ -237,7 +291,7 @@ function TimeSlotField({
       >
         <option value="" />
         {slots.map((slot) => (
-          <option key={slot} value={slot}>
+          <option key={slot} value={slot} disabled={isUnavailable(slot)}>
             {slot}
           </option>
         ))}
