@@ -38,12 +38,12 @@ export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
   );
 }
 
-export function Logo() {
+export function Logo({ animate = false }: { animate?: boolean }) {
   const { locale } = useLanguage();
   const name = locale === "ar" ? "تركي كار" : "Turki Car";
 
   return (
-    <span className="inline-flex items-center gap-2.5">
+    <span className={`inline-flex items-center gap-2.5 ${animate ? "brand-enter" : ""}`}>
       <LogoMark />
       <span className="text-[1.15rem] font-semibold leading-none text-ink">{name}</span>
     </span>

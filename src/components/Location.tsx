@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/Reveal";
 import { business } from "@/content/business";
 import { MapLink, primaryButtonClass } from "@/components/contact-links";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -11,6 +12,7 @@ export function Location() {
   return (
     <section id="location">
       <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 sm:py-14">
+        <Reveal>
         <div className="glass overflow-hidden rounded-3xl">
           <div className="grid lg:grid-cols-5">
             <div className="flex flex-col items-start justify-center gap-4 p-6 sm:p-8 lg:col-span-2">
@@ -54,6 +56,7 @@ export function Location() {
             </a>
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/Reveal";
 import { useLanguage } from "@/components/LanguageProvider";
 import {
   CallLink,
@@ -17,6 +18,7 @@ export function ContactCTA() {
   return (
     <section id="contact">
       <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
+        <Reveal>
         <div className="mb-4 h-0.5 w-10 bg-accent" />
         <h2 className="max-w-xl text-3xl font-semibold text-ink sm:text-4xl">{copy.contact.heading}</h2>
         <p className="mt-3 max-w-xl text-base leading-relaxed text-muted sm:text-lg">{copy.contact.body}</p>
@@ -32,6 +34,7 @@ export function ContactCTA() {
           {copy.contact.phoneLabel}{" "}
           <PhoneNumber className="font-medium" />
         </p>
+        </Reveal>
       </div>
     </section>
   );

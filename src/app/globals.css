@@ -61,6 +61,11 @@
     line-height: 1.6;
   }
 
+  html[lang="ru"] body {
+    line-height: 1.6;
+    font-family: var(--font-latin), var(--font-arabic), "Segoe UI", Tahoma, sans-serif;
+  }
+
   h1,
   h2,
   h3 {
@@ -123,6 +128,10 @@
   background: rgb(12 14 18 / 0.72);
 }
 
+.glass-card:active {
+  transform: translateY(-1px);
+}
+
 .glass-card.is-selected,
 .glass-card.is-selected:hover {
   border-color: rgb(211 18 36 / 0.9);
@@ -137,6 +146,28 @@
 
 .service-panel {
   animation: panel-in 0.35s ease;
+}
+
+.service-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease;
+}
+
+.service-fold.is-open {
+  grid-template-rows: 1fr;
+}
+
+.service-fold > div {
+  overflow: hidden;
+}
+
+.booking-layer {
+  animation: reveal-fallback 0.2s ease;
+}
+
+.booking-panel {
+  animation: panel-in 0.28s ease;
 }
 
 .map-plate {
@@ -194,6 +225,78 @@
   }
 }
 
+.brand-enter {
+  animation: brand-in 0.7s ease both;
+}
+
+.hero-enter {
+  animation: hero-in 0.75s ease both;
+}
+
+.hero-enter-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.hero-enter-delay-2 {
+  animation-delay: 0.18s;
+}
+
+.hero-enter-delay-3 {
+  animation-delay: 0.28s;
+}
+
+@keyframes brand-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+[dir="rtl"] .marquee {
+  direction: ltr;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: brand-marquee 56s linear infinite;
+}
+
+@keyframes brand-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
 @media (max-width: 768px) {
   .workshop-bg {
     animation: none;
@@ -202,7 +305,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .workshop-bg,
-  .reveal {
+  .reveal,
+  .brand-enter,
+  .hero-enter {
     animation: none;
     opacity: 1;
     transform: none;
@@ -210,9 +315,33 @@
   }
 
   .glass-card:hover,
-  .service-panel {
+  .glass-card:active,
+  .service-panel,
+  .booking-layer,
+  .booking-panel {
     transform: none;
     animation: none;
+  }
+
+  .service-fold,
+  .service-fold.is-open {
+    transition: none;
+  }
+
+  .marquee {
+    mask-image: none;
+  }
+
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    row-gap: 0.75rem;
+  }
+
+  .marquee-track [data-marquee-clone] {
+    display: none;
   }
 }
 

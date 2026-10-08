@@ -5,13 +5,13 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { PhoneIcon, WhatsAppIcon } from "@/components/icons";
 
 export const primaryButtonClass =
-  "min-h-12 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-on-accent shadow-[0_8px_24px_rgb(211_18_36_/_0.28)] transition-colors hover:bg-accent-strong";
+  "min-h-12 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-on-accent shadow-[0_8px_24px_rgb(211_18_36_/_0.28)] transition duration-200 hover:-translate-y-px hover:bg-accent-strong active:translate-y-0 motion-reduce:translate-y-0 motion-reduce:transition-none";
 
 export const quietButtonClass =
-  "min-h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-black/30 px-5 text-sm font-semibold text-ink transition-colors hover:border-white/40";
+  "min-h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-black/30 px-5 text-sm font-semibold text-ink transition duration-200 hover:-translate-y-px hover:border-white/40 active:translate-y-0 motion-reduce:translate-y-0 motion-reduce:transition-none";
 
 export const whatsappButtonClass =
-  "min-h-12 items-center justify-center gap-2 rounded-full border border-wa-line bg-wa px-5 text-sm font-semibold text-wa-text transition-colors hover:bg-wa-hover";
+  "min-h-12 items-center justify-center gap-2 rounded-full border border-wa-line bg-wa px-5 text-sm font-semibold text-wa-text transition duration-200 hover:-translate-y-px hover:bg-wa-hover active:translate-y-0 motion-reduce:translate-y-0 motion-reduce:transition-none";
 
 function externalProps(href: string) {
   if (!isExternal(href)) {

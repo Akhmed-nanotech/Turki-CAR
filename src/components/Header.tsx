@@ -39,14 +39,14 @@ export function Header() {
   return (
     <header id="top" className="sticky top-0 z-40 border-b border-white/10 bg-[#07090d]/75 backdrop-blur-md">
       <div className="h-0.5 bg-accent" />
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-5 sm:px-6">
+      <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center gap-2 px-4 sm:gap-3 sm:px-6">
         <a href="#top" className="shrink-0 rounded-sm">
-          <Logo />
+          <Logo animate />
         </a>
-        <nav className="ms-6 hidden items-center gap-6 lg:flex" aria-label={copy.navLabel}>
+        <nav className="ms-4 hidden min-w-0 flex-wrap items-center gap-x-4 gap-y-1 lg:flex" aria-label={copy.navLabel}>
           {copy.nav.map((item) => (
             <a
-              key={item.href}
+              key={`${item.href}-${item.label}`}
               href={item.href}
               className="text-sm text-muted transition-colors hover:text-ink"
             >
@@ -83,7 +83,7 @@ export function Header() {
           >
             {copy.nav.map((item) => (
               <a
-                key={item.href}
+                key={`${item.href}-${item.label}`}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className="border-b border-line py-3 text-base text-ink"

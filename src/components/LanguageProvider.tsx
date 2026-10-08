@@ -26,7 +26,7 @@ const listeners = new Set<() => void>();
 function readStored(): Locale {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "ar" || stored === "en") {
+    if (stored === "ar" || stored === "en" || stored === "ru") {
       return stored;
     }
   } catch {

@@ -129,12 +129,71 @@ export function PinIcon({ className }: IconProps) {
   );
 }
 
+export function OilIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <path d="M10 3.5h4l.6 3.2H9.4z" />
+      <path d="M8.2 6.7h7.6l.8 2.2a5.2 5.2 0 0 1-9.2 0z" />
+      <path d="M9.2 14.2c.6 1.6 1.6 2.6 2.8 2.6s2.2-1 2.8-2.6" />
+    </Glyph>
+  );
+}
+
+export function AcIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <path d="M12 4.5v3.2M12 16.3V19.5M5.2 8.2l2.2 2.2M16.6 13.6l2.2 2.2M5.2 15.8l2.2-2.2M16.6 10.4l2.2-2.2" />
+      <circle cx="12" cy="12" r="2.2" />
+    </Glyph>
+  );
+}
+
+export function CleanIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <path d="M8 14.5c1.2 2.6 2.6 4 4 4s2.8-1.4 4-4" />
+      <path d="M7 10.5c1.6-.8 3.2-1.2 5-1.2s3.4.4 5 1.2" />
+      <path d="M12 4.2v2.2" />
+    </Glyph>
+  );
+}
+
+export function WheelIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <circle cx="12" cy="12" r="7.2" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M12 5.2v4.6M12 14.2v4.6M5.2 12h4.6M14.2 12h4.6" />
+    </Glyph>
+  );
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <circle cx="11" cy="11" r="5.2" />
+      <path d="M15.2 15.2 19 19" />
+    </Glyph>
+  );
+}
+
+export function ElectricalIcon({ className }: IconProps) {
+  return (
+    <Glyph className={className}>
+      <path d="M13 3.5 7.5 13h4L10.5 20.5 17 10.5h-4.2z" />
+    </Glyph>
+  );
+}
+
 const serviceIconMap = {
-  engine: EngineIcon,
-  transmission: GearIcon,
+  checkup: SearchIcon,
+  fluids: OilIcon,
+  ac: AcIcon,
   suspension: SuspensionIcon,
-  diagnostics: DiagnosticIcon,
-  inspection: InspectionIcon,
+  mechanical: EngineIcon,
+  electrical: ElectricalIcon,
+  detailing: CleanIcon,
+  wheels: WheelIcon,
 } as const;
 
 export function ServiceIcon({

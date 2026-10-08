@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/Reveal";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export function Trust() {
@@ -8,6 +9,7 @@ export function Trust() {
   return (
     <section>
       <div className="mx-auto w-full max-w-6xl px-5 py-4 sm:px-6 sm:py-8">
+        <Reveal>
         <h2 className="text-2xl font-semibold text-ink sm:text-3xl">{copy.trust.heading}</h2>
         <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {copy.trust.points.map((point) => (
@@ -17,6 +19,7 @@ export function Trust() {
             </li>
           ))}
         </ul>
+        </Reveal>
       </div>
     </section>
   );

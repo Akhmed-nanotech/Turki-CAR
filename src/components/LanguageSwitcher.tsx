@@ -1,6 +1,13 @@
 "use client";
 
 import { useLanguage } from "@/components/LanguageProvider";
+import type { Locale } from "@/content/site";
+
+const languages: { id: Locale; label: string }[] = [
+  { id: "ar", label: "عربي" },
+  { id: "en", label: "EN" },
+  { id: "ru", label: "Русский" },
+];
 
 export function LanguageSwitcher({
   className = "",
@@ -11,7 +18,7 @@ export function LanguageSwitcher({
 }) {
   const { locale, setLocale, copy } = useLanguage();
 
-  function select(next: "ar" | "en") {
+  function select(next: Locale) {
     setLocale(next);
     onChange?.();
   }
@@ -20,32 +27,21 @@ export function LanguageSwitcher({
     <div
       role="group"
       aria-label={copy.languageLabel}
-      className={`inline-flex items-center rounded-full border border-white/15 bg-black/40 p-0.5 ${className}`}
+      className={`inline-flex max-w-full items-center rounded-full border border-white/15 bg-black/40 p-0.5 ${className}`}
     >
-      <button
-        type="button"
-        onClick={() => select("ar")}
-        aria-pressed={locale === "ar"}
-        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-          locale === "ar"
-            ? "bg-accent text-on-accent"
-            : "text-muted hover:text-ink"
-        }`}
-      >
-        عربي
-      </button>
-      <button
-        type="button"
-        onClick={() => select("en")}
-        aria-pressed={locale === "en"}
-        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-          locale === "en"
-            ? "bg-accent text-on-accent"
-            : "text-muted hover:text-ink"
-        }`}
-      >
-        EN
-      </button>
+      {languages.map((language) => (
+        <button
+          key={language.id}
+          type="button"
+          onClick={() => select(language.id)}
+          aria-pressed={locale === language.id}
+          className={`whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium sm:px-2.5 ${
+            locale === language.id ? "bg-accent text-on-accent" : "text-muted hover:text-ink"
+          }`}
+        >
+          {language.label}
+        </button>
+      ))}
     </div>
   );
 }

@@ -1,122 +1,119 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { BookingDialog } from "@/components/BookingDialog";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { useLanguage } from "@/components/LanguageProvider";
-import { ArrowIcon, ServiceIcon } from "@/components/icons";
-import {
-  CallLink,
-  WhatsAppLink,
-  primaryButtonClass,
-  whatsappButtonClass,
-} from "@/components/contact-links";
-import type { ServiceId } from "@/content/site";
+import { ServiceIcon } from "@/components/icons";
+import type { WorkshopServiceId } from "@/content/site";
 
-function scrollToServiceDetail(detail: HTMLElement) {
-  const header = document.querySelector("header");
-  const headerHeight = header?.getBoundingClientRect().height ?? 0;
-  document.documentElement.style.scrollPaddingTop = `${headerHeight + 16}px`;
-  const heading = detail.querySelector("h3");
-  const target = heading instanceof HTMLElement ? heading : detail;
-  target.style.scrollMarginTop = "0px";
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  target.scrollIntoView({
-    behavior: reduce ? "auto" : "smooth",
-    block: "start",
-  });
-}
+type BookingSelection = {
+  categoryId: WorkshopServiceId;
+  optionId: string;
+};
 
 export function Services() {
   const { copy } = useLanguage();
-  const detailRef = useRef<HTMLDivElement>(null);
-  const shouldScroll = useRef(false);
-  const [selectedId, setSelectedId] = useState<ServiceId | null>(null);
-  const selected = copy.services.items.find((item) => item.id === selectedId) ?? null;
+  const [expandedId, setExpandedId] = useState<WorkshopServiceId | null>(null);
+  const [booking, setBooking] = useState<BookingSelection | null>(null);
+  const closeBooking = useCallback(() => setBooking(null), []);
 
-  useLayoutEffect(() => {
-    if (!shouldScroll.current || !detailRef.current) {
-      return;
-    }
-    shouldScroll.current = false;
-    scrollToServiceDetail(detailRef.current);
-  }, [selectedId]);
+  const selectedCategory = copy.services.items.find((item) => item.id === booking?.categoryId) ?? null;
+  const selectedOption =
+    selectedCategory?.options.find((option) => option.id === booking?.optionId) ?? null;
 
-  function openService(id: ServiceId) {
-    if (id === selectedId && detailRef.current) {
-      scrollToServiceDetail(detailRef.current);
-      return;
-    }
-    shouldScroll.current = true;
-    setSelectedId(id);
+  function toggleCategory(id: WorkshopServiceId) {
+    setExpandedId((current) => (current === id ? null : id));
   }
 
   return (
     <section id="services">
-      <div className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
+      <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-6 sm:py-14">
         <Reveal>
           <SectionHeading title={copy.services.heading} intro={copy.services.intro} />
         </Reveal>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="mt-5 space-y-2">
           {copy.services.items.map((item, index) => {
-            const isSelected = item.id === selectedId;
+            const open = item.id === expandedId;
+            const panelId = `service-panel-${item.id}`;
+            const buttonId = `service-button-${item.id}`;
+            const prominent = item.id === "checkup";
             return (
-              <li key={item.id} className="min-w-0">
-                <Reveal delay={index * 70} className="h-full">
-                  <button
-                    type="button"
-                    aria-pressed={isSelected}
-                    aria-controls="service-detail"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                    }}
-                    onClick={() => openService(item.id)}
-                    className={`glass-card flex h-full w-full cursor-pointer flex-col rounded-2xl p-5 text-start ${
-                      isSelected ? "is-selected" : item.id === "inspection" ? "border-accent/45" : ""
-                    }`}
+              <li key={item.id}>
+                <Reveal delay={index * 50}>
+                  <h3>
+                    <button
+                      id={buttonId}
+                      type="button"
+                      aria-expanded={open}
+                      aria-controls={panelId}
+                      onClick={() => toggleCategory(item.id)}
+                      className={`flex min-h-12 w-full items-center gap-3 rounded-xl border px-3 py-2 text-start transition duration-200 active:translate-y-px motion-reduce:transition-none ${
+                        prominent
+                          ? "border-accent/75 bg-accent/10 shadow-[inset_0_0_0_1px_rgb(211_18_36_/_0.28)]"
+                          : "border-white/14 bg-black/40"
+                      } ${open ? "border-accent/80" : "hover:border-white/28"}`}
+                    >
+                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/30 text-accent">
+                        <ServiceIcon id={item.id} className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 text-base font-semibold text-ink">
+                        {item.title}
+                      </span>
+                      <span aria-hidden="true" className="w-6 text-center text-lg leading-none text-accent">
+                        {open ? "−" : "+"}
+                      </span>
+                    </button>
+                  </h3>
+                  <div
+                    id={panelId}
+                    role="region"
+                    aria-labelledby={buttonId}
+                    className={`service-fold ${open ? "is-open" : ""}`}
+                    inert={!open}
                   >
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-accent">
-                      <ServiceIcon id={item.id} />
-                    </span>
-                    <h3 className="mt-4 text-lg font-semibold text-ink">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
-                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent">
-                      {copy.cta.learnMore}
-                      <ArrowIcon className="h-4 w-4" />
-                    </span>
-                  </button>
+                    <div>
+                      <ul className="space-y-1 px-1 py-1.5">
+                        {item.options.map((option) => {
+                          const selected =
+                            booking?.categoryId === item.id && booking.optionId === option.id;
+                          return (
+                            <li key={option.id}>
+                              <button
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() =>
+                                  setBooking({ categoryId: item.id, optionId: option.id })
+                                }
+                                className={`min-h-12 w-full rounded-xl px-4 text-start text-sm font-medium transition duration-200 active:translate-y-px motion-reduce:transition-none ${
+                                  selected
+                                    ? "bg-accent text-on-accent"
+                                    : "text-ink hover:bg-white/10"
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
                 </Reveal>
               </li>
             );
           })}
         </ul>
-        <p className="mt-8 max-w-3xl border-s-2 border-accent/80 ps-4 text-sm leading-relaxed text-muted sm:text-base">
-          {copy.services.note}
-        </p>
-        <div id="service-detail" ref={detailRef} aria-live="polite" className="mt-4 min-w-0">
-          {selected ? (
-            <div key={selected.id} className="service-panel glass rounded-2xl p-5 sm:p-6">
-              <h3 className="text-xl font-semibold text-ink">{selected.title}</h3>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
-                {selected.detail}
-              </p>
-              <p className="mt-4 text-sm font-medium text-ink">{copy.services.examplesLabel}</p>
-              <ul className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
-                {selected.examples.map((example) => (
-                  <li key={example} className="flex items-start gap-2.5 text-sm text-ink">
-                    <span className="mt-2 h-1 w-1 shrink-0 bg-accent" />
-                    <span>{example}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:flex">
-                <CallLink className={`${primaryButtonClass} inline-flex`} />
-                <WhatsAppLink className={`${whatsappButtonClass} inline-flex`} />
-              </div>
-            </div>
-          ) : null}
-        </div>
       </div>
+      {selectedCategory && selectedOption ? (
+        <BookingDialog
+          category={selectedCategory.title}
+          option={selectedOption.label}
+          copy={copy.services.booking}
+          onClose={closeBooking}
+        />
+      ) : null}
     </section>
   );
 }

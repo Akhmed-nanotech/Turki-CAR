@@ -1,4 +1,4 @@
-export type Locale = "ar" | "en";
+export type Locale = "ar" | "en" | "ru";
 
 export type ServiceId =
   | "engine"
@@ -6,6 +6,16 @@ export type ServiceId =
   | "suspension"
   | "diagnostics"
   | "inspection";
+
+export type WorkshopServiceId =
+  | "checkup"
+  | "fluids"
+  | "ac"
+  | "suspension"
+  | "mechanical"
+  | "electrical"
+  | "detailing"
+  | "wheels";
 
 export type SiteCopy = {
   metaTitle: string;
@@ -37,25 +47,24 @@ export type SiteCopy = {
     heading: string;
     intro: string;
     note: string;
-    examplesLabel: string;
     items: {
-      id: ServiceId;
+      id: WorkshopServiceId;
       title: string;
-      text: string;
       href: string;
-      detail: string;
-      examples: string[];
+      options: { id: string; label: string }[];
     }[];
-  };
-  inspection: {
-    kicker: string;
-    heading: string;
-    body: string;
-    note: string;
-    points: string[];
-    ctaNote: string;
-    panelTitle: string;
-    panelText: string;
+    booking: {
+      title: string;
+      date: string;
+      time: string;
+      name: string;
+      phone: string;
+      vehicle: string;
+      confirm: string;
+      close: string;
+      missing: string;
+      summary: string;
+    };
   };
   experience: {
     heading: string;
@@ -102,7 +111,7 @@ export const content: Record<Locale, SiteCopy> = {
     navLabel: "التنقل",
     nav: [
       { href: "#services", label: "الخدمات" },
-      { href: "#inspection", label: "فحص قبل الشراء" },
+      { href: "#services", label: "فحص قبل الشراء" },
       { href: "#process", label: "كيف نعمل" },
       { href: "#contact", label: "تواصل معنا" },
       { href: "#location", label: "الموقع" },
@@ -121,7 +130,7 @@ export const content: Record<Locale, SiteCopy> = {
     },
     hero: {
       eyebrow: "ورشة صيانة سيارات",
-      title: "سيارتك فيها مشكلة؟\nخلّ التشخيص علينا.",
+      title: "عندك مشكلة في سيارتك؟ نساعدك في حلها.",
       support:
         "ورشة لإصلاح وصيانة السيارات. من الصيانة الدورية إلى أعطال المحرك والقير والعفشة والكمبيوتر، مع فحص السيارة قبل الشراء.",
       chips: [
@@ -129,7 +138,7 @@ export const content: Record<Locale, SiteCopy> = {
         { id: "transmission", label: "القير", href: "#services" },
         { id: "suspension", label: "العفشة", href: "#services" },
         { id: "diagnostics", label: "فحص الكمبيوتر", href: "#services" },
-        { id: "inspection", label: "فحص قبل الشراء", href: "#inspection" },
+        { id: "inspection", label: "فحص السيارة قبل الشراء", href: "#services" },
       ],
       imageAlt: "ورشة تركي كار",
     },
@@ -137,98 +146,104 @@ export const content: Record<Locale, SiteCopy> = {
       heading: "خدماتنا",
       intro: "أعمال الصيانة والتشخيص التي ننفذها في الورشة.",
       note: "ومن الصيانة الدورية والإصلاحات اليومية إلى الأعطال الأكبر، نساعدك في فحص السيارة وتحديد ما تحتاجه.",
-      examplesLabel: "من الأعمال المعتادة",
       items: [
         {
-          id: "engine",
-          title: "إصلاح المحرك",
-          text: "فحص مشاكل المحرك الشائعة والعمل عليها حسب الحالة.",
+          id: "checkup",
+          title: "فحص السيارة قبل الشراء",
           href: "#services",
-          detail:
-            "نفحص مشاكل المحرك الشائعة ونحدد السبب. أي إصلاح يكون بعد الفحص، وحسب حالة السيارة.",
-          examples: [
-            "تشخيص ضعف أداء المحرك",
-            "معالجة التقطيع أو الاهتزاز",
-            "فحص مشاكل الحرارة وارتفاع حرارة المحرك",
-            "فحص تسربات الزيوت والسوائل",
-            "تغيير الزيت والفلاتر",
-            "تغيير شمعات الاحتراق عند الحاجة",
+          options: [
+            { id: "full", label: "فحص شامل" },
+            { id: "partial", label: "فحص جزئي" },
           ],
         },
         {
-          id: "transmission",
-          title: "إصلاح القير وناقل الحركة",
-          text: "فحص مشاكل القير وناقل الحركة وتوضيح الحالة.",
+          id: "fluids",
+          title: "تغيير الزيوت والسوائل",
           href: "#services",
-          detail: "نفحص مشاكل تبديل القير وناقل الحركة، ونوضح لك الحالة قبل أي خطوة.",
-          examples: [
-            "فحص مشاكل تبديل القير",
-            "التقطيع أو التأخير أثناء النقل",
-            "فحص الأصوات أو الاهتزازات المرتبطة بالقير",
-            "فحص تسرب زيت القير",
-            "صيانة زيت القير حسب حالة السيارة ومتطلباتها",
+          options: [
+            { id: "engine-oil", label: "زيت المحرك" },
+            { id: "gearbox-oil", label: "زيت القير / ناقل الحركة" },
+            { id: "differential-oil", label: "زيت الدفرنس" },
+            { id: "other-fluids", label: "سوائل أخرى" },
+          ],
+        },
+        {
+          id: "ac",
+          title: "إصلاح التكييف",
+          href: "#services",
+          options: [
+            { id: "diagnostics", label: "تشخيص التكييف" },
+            { id: "refill", label: "تعبئة الفريون" },
+            { id: "repair", label: "إصلاح التكييف" },
           ],
         },
         {
           id: "suspension",
-          title: "صيانة العفشة ونظام التعليق",
-          text: "فحص المساعدات وأجزاء التعليق وثبات السيارة.",
+          title: "العفشة والهيكل",
           href: "#services",
-          detail:
-            "نفحص العفشة ونظام التعليق، من المساعدات والمقصات إلى سبب الاهتزاز أو تآكل الإطارات إذا كان مرتبطاً بالتعليق.",
-          examples: [
-            "فحص المساعدات",
-            "فحص المقصات والجلب",
-            "فحص أذرعة وأجزاء نظام التعليق",
-            "معالجة الاهتزازات أو عدم الثبات",
-            "فحص الأصوات القادمة من العفشة",
-            "فحص مشاكل تآكل الإطارات المرتبطة بالتعليق أو المحاذاة",
+          options: [
+            { id: "inspection", label: "فحص وإصلاح العفشة" },
+            { id: "shocks", label: "المساعدات" },
+            { id: "arms", label: "المقصات والجلب" },
+            { id: "brakes", label: "خدمة نظام الفرامل" },
+            { id: "other", label: "أعمال أخرى في الهيكل" },
           ],
         },
         {
-          id: "diagnostics",
-          title: "فحص وتشخيص أعطال الكمبيوتر",
-          text: "قراءة الأعطال وتحديد مصدر الخلل قبل الإصلاح.",
+          id: "mechanical",
+          title: "الإصلاح الميكانيكي",
           href: "#services",
-          detail: "نقرأ أكواد الأعطال ونحدد مصدر الخلل قبل البدء بالإصلاح.",
-          examples: [
-            "قراءة أكواد الأعطال",
-            "فحص لمبة المكينة",
-            "تشخيص مشاكل الحساسات والأنظمة الإلكترونية",
-            "تحديد مصدر الخلل قبل البدء بالإصلاح",
+          options: [
+            { id: "engine", label: "إصلاح المحرك" },
+            { id: "gearbox", label: "إصلاح القير / ناقل الحركة" },
+            { id: "other", label: "إصلاح ميكانيكي آخر" },
           ],
         },
         {
-          id: "inspection",
-          title: "فحص السيارة قبل الشراء",
-          text: "فهم الحالة الميكانيكية للسيارة قبل قرار الشراء.",
+          id: "electrical",
+          title: "إصلاح كهرباء السيارة",
           href: "#services",
-          detail:
-            "نساعدك تفهم الحالة الميكانيكية للسيارة قبل الشراء. الفحص يوضّح الحالة، وقرار الشراء يبقى لك.",
-          examples: [
-            "فحص المحرك",
-            "فحص القير",
-            "فحص العفشة",
-            "فحص التسريبات",
-            "فحص الأعطال الظاهرة عبر الكمبيوتر",
-            "ملاحظات عامة على الحالة الميكانيكية للسيارة",
+          options: [
+            { id: "diagnostics", label: "تشخيص كهرباء السيارة" },
+            { id: "wiring", label: "إصلاح التمديدات الكهربائية" },
+            { id: "other", label: "إصلاح كهربائي آخر" },
+          ],
+        },
+        {
+          id: "detailing",
+          title: "التنظيف والتلميع",
+          href: "#services",
+          options: [
+            { id: "interior", label: "تنظيف داخلي" },
+            { id: "polishing", label: "تلميع" },
+            { id: "wash", label: "غسيل السيارة" },
+            { id: "engine-bay", label: "تنظيف غرفة المحرك" },
+            { id: "underbody", label: "تنظيف أسفل السيارة" },
+            { id: "full", label: "تلميع وتفصيل كامل" },
+          ],
+        },
+        {
+          id: "wheels",
+          title: "إصلاح الجنوط",
+          href: "#services",
+          options: [
+            { id: "repair", label: "إصلاح الجنط" },
+            { id: "straightening", label: "تعديل الجنط" },
           ],
         },
       ],
-    },
-    inspection: {
-      kicker: "فحص قبل الشراء",
-      heading: "قبل ما تشتري، افحص السيارة",
-      body: "نفحص الحالة الميكانيكية للسيارة قبل الشراء، ونوضح لك اللي تبين من الفحص.",
-      note: "الفحص يوضّح الحالة. قرار الشراء يبقى لك.",
-      points: [
-        "المحرك والقير والعفشة",
-        "التسريبات والأعطال الظاهرة عبر الكمبيوتر",
-        "ملاحظات تساعدك على القرار",
-      ],
-      ctaNote: "حالياً يتم طلب الفحص بالاتصال أو واتساب.",
-      panelTitle: "فحص مستقل",
-      panelText: "لمعرفة حالة السيارة قبل ما تقرر.",
+      booking: {
+        title: "حجز موعد",
+        date: "التاريخ",
+        time: "الوقت",
+        name: "الاسم",
+        phone: "الجوال",
+        vehicle: "السيارة",
+        confirm: "تأكيد الحجز",
+        close: "إغلاق",
+        missing: "أكمل البيانات المطلوبة",
+        summary: "طلب الحجز",
+      },
     },
     experience: {
       heading: "الخبرة تصنع الفرق",
@@ -292,7 +307,7 @@ export const content: Record<Locale, SiteCopy> = {
     navLabel: "Main",
     nav: [
       { href: "#services", label: "Services" },
-      { href: "#inspection", label: "Pre-purchase check" },
+      { href: "#services", label: "Pre-Purchase Inspection" },
       { href: "#process", label: "How we work" },
       { href: "#contact", label: "Contact" },
       { href: "#location", label: "Location" },
@@ -311,7 +326,7 @@ export const content: Record<Locale, SiteCopy> = {
     },
     hero: {
       eyebrow: "Automotive workshop",
-      title: "Car trouble?\nLeave the diagnosis to us.",
+      title: "Car problem? We’ll find the right solution.",
       support:
         "A workshop for repair and routine maintenance, from engine, transmission, and suspension work to computer diagnostics and a pre-purchase inspection.",
       chips: [
@@ -319,7 +334,7 @@ export const content: Record<Locale, SiteCopy> = {
         { id: "transmission", label: "Transmission", href: "#services" },
         { id: "suspension", label: "Suspension", href: "#services" },
         { id: "diagnostics", label: "Computer check", href: "#services" },
-        { id: "inspection", label: "Pre-purchase check", href: "#inspection" },
+        { id: "inspection", label: "Pre-Purchase Inspection", href: "#services" },
       ],
       imageAlt: "Turki Car workshop",
     },
@@ -327,98 +342,104 @@ export const content: Record<Locale, SiteCopy> = {
       heading: "Our services",
       intro: "The maintenance and diagnostic work we do in the workshop.",
       note: "From routine maintenance and everyday repairs to larger faults, we help you check the car and see what it needs.",
-      examplesLabel: "Typical work",
       items: [
         {
-          id: "engine",
-          title: "Engine repair",
-          text: "Inspect common engine problems and repair according to the condition.",
+          id: "checkup",
+          title: "Pre-Purchase Inspection",
           href: "#services",
-          detail:
-            "We inspect common engine problems and identify the cause. Any repair follows the inspection and depends on the car’s condition.",
-          examples: [
-            "Weak engine performance",
-            "Hesitation or vibration",
-            "Overheating and cooling problems",
-            "Oil and fluid leaks",
-            "Oil and filter changes",
-            "Spark plugs when needed",
+          options: [
+            { id: "full", label: "Full Inspection" },
+            { id: "partial", label: "Partial Inspection" },
           ],
         },
         {
-          id: "transmission",
-          title: "Gearbox and transmission repair",
-          text: "Inspect gearbox and transmission problems and explain the condition.",
+          id: "fluids",
+          title: "Oil & Fluid Changes",
           href: "#services",
-          detail: "We inspect gear-change and transmission problems and explain the condition before any next step.",
-          examples: [
-            "Gear-change problems",
-            "Hesitation or delay while shifting",
-            "Noise or vibration linked to the gearbox",
-            "Gearbox oil leaks",
-            "Gearbox oil service according to the car and its requirements",
+          options: [
+            { id: "engine-oil", label: "Engine Oil" },
+            { id: "gearbox-oil", label: "Gearbox / Transmission Oil" },
+            { id: "differential-oil", label: "Differential Oil" },
+            { id: "other-fluids", label: "Other Fluid Changes" },
+          ],
+        },
+        {
+          id: "ac",
+          title: "A/C Repair",
+          href: "#services",
+          options: [
+            { id: "diagnostics", label: "A/C Diagnostics" },
+            { id: "refill", label: "Refrigerant Refill" },
+            { id: "repair", label: "A/C Repair" },
           ],
         },
         {
           id: "suspension",
-          title: "Suspension and undercarriage",
-          text: "Inspect shocks, suspension parts, and how the car sits on the road.",
+          title: "Suspension / Chassis",
           href: "#services",
-          detail:
-            "We inspect the suspension and undercarriage, from shocks and control arms to vibration or tire wear when it is linked to the suspension.",
-          examples: [
-            "Shock absorbers",
-            "Control arms and bushings",
-            "Suspension arms and related parts",
-            "Vibration or unstable handling",
-            "Noise from the undercarriage",
-            "Tire wear linked to the suspension or alignment",
+          options: [
+            { id: "inspection", label: "Suspension Inspection / Repair" },
+            { id: "shocks", label: "Shock Absorbers" },
+            { id: "arms", label: "Control Arms / Bushings" },
+            { id: "brakes", label: "Brake System Service" },
+            { id: "other", label: "Other Chassis Work" },
           ],
         },
         {
-          id: "diagnostics",
-          title: "Computer diagnostics",
-          text: "Read fault codes and find the source before repair.",
+          id: "mechanical",
+          title: "Mechanical Repair",
           href: "#services",
-          detail: "We read the fault codes and identify the source of the problem before repair starts.",
-          examples: [
-            "Reading fault codes",
-            "Check-engine light",
-            "Sensors and electronic systems",
-            "Finding the source before repair",
+          options: [
+            { id: "engine", label: "Engine Repair" },
+            { id: "gearbox", label: "Gearbox / Transmission Repair" },
+            { id: "other", label: "Other Mechanical Repair" },
           ],
         },
         {
-          id: "inspection",
-          title: "Pre-purchase inspection",
-          text: "Understand the mechanical condition before you decide to buy.",
+          id: "electrical",
+          title: "Auto Electrical Repair",
           href: "#services",
-          detail:
-            "We help you understand the car’s mechanical condition before you buy. The inspection shows the condition. The buying decision stays yours.",
-          examples: [
-            "Engine",
-            "Gearbox",
-            "Suspension and undercarriage",
-            "Leaks",
-            "Faults showing through the computer",
-            "General notes on the mechanical condition",
+          options: [
+            { id: "diagnostics", label: "Electrical Diagnostics" },
+            { id: "wiring", label: "Wiring Repair" },
+            { id: "other", label: "Other Electrical Repair" },
+          ],
+        },
+        {
+          id: "detailing",
+          title: "Cleaning & Detailing",
+          href: "#services",
+          options: [
+            { id: "interior", label: "Interior Cleaning" },
+            { id: "polishing", label: "Polishing" },
+            { id: "wash", label: "Car Wash" },
+            { id: "engine-bay", label: "Engine Bay Cleaning" },
+            { id: "underbody", label: "Underbody Cleaning" },
+            { id: "full", label: "Full Detailing" },
+          ],
+        },
+        {
+          id: "wheels",
+          title: "Wheel / Rim Repair",
+          href: "#services",
+          options: [
+            { id: "repair", label: "Rim Repair" },
+            { id: "straightening", label: "Rim Straightening" },
           ],
         },
       ],
-    },
-    inspection: {
-      kicker: "Pre-purchase inspection",
-      heading: "Before you buy, inspect the car.",
-      body: "We inspect the mechanical condition of the car before you buy and explain what the check shows.",
-      note: "The inspection shows the condition. The buying decision stays yours.",
-      points: [
-        "Engine, gearbox, and suspension",
-        "Leaks and faults showing through the computer",
-        "Notes that help you decide",
-      ],
-      ctaNote: "For now, request the inspection by phone or WhatsApp.",
-      panelTitle: "An independent check",
-      panelText: "So you know the car’s condition before you decide.",
+      booking: {
+        title: "Book an appointment",
+        date: "Date",
+        time: "Time",
+        name: "Name",
+        phone: "Phone",
+        vehicle: "Vehicle",
+        confirm: "Confirm booking",
+        close: "Close",
+        missing: "Complete the required fields",
+        summary: "Booking request",
+      },
     },
     experience: {
       heading: "Experience makes the difference",
@@ -472,6 +493,202 @@ export const content: Record<Locale, SiteCopy> = {
       servicesHeading: "Services",
       contactHeading: "Contact",
       rights: "All rights reserved.",
+    },
+  },
+  ru: {
+    metaTitle: "Turki Car | Ремонт и диагностика автомобилей",
+    languageLabel: "Язык",
+    menuOpen: "Открыть меню",
+    menuClose: "Закрыть меню",
+    navLabel: "Навигация",
+    nav: [
+      { href: "#services", label: "Услуги" },
+      { href: "#services", label: "Проверка перед покупкой" },
+      { href: "#process", label: "Как мы работаем" },
+      { href: "#contact", label: "Контакты" },
+      { href: "#location", label: "Адрес" },
+    ],
+    cta: {
+      call: "Позвонить",
+      whatsapp: "WhatsApp",
+      bookInspection: "Записать на проверку",
+      learnMore: "Подробнее",
+    },
+    placeholders: {
+      phone: "[Телефон]",
+      whatsapp: "[Ссылка WhatsApp]",
+      location: "[Адрес]",
+      hours: "[Часы работы]",
+    },
+    hero: {
+      eyebrow: "Автомастерская",
+      title: "Проблема с машиной? Найдём решение.",
+      support:
+        "Мастерская по ремонту и обслуживанию: от регулярного ТО до двигателя, коробки, подвески и компьютерной диагностики, а также проверка перед покупкой.",
+      chips: [
+        { id: "engine", label: "Двигатель", href: "#services" },
+        { id: "transmission", label: "Коробка", href: "#services" },
+        { id: "suspension", label: "Подвеска", href: "#services" },
+        { id: "diagnostics", label: "Компьютерная диагностика", href: "#services" },
+        { id: "inspection", label: "Проверка перед покупкой", href: "#services" },
+      ],
+      imageAlt: "Мастерская Turki Car",
+    },
+    services: {
+      heading: "Услуги",
+      intro: "Обслуживание и диагностика, которые мы делаем в мастерской.",
+      note: "От регулярного обслуживания и повседневного ремонта до более серьёзных неисправностей: проверяем автомобиль и объясняем, что ему нужно.",
+      items: [
+        {
+          id: "checkup",
+          title: "Проверка перед покупкой",
+          href: "#services",
+          options: [
+            { id: "full", label: "Полная проверка" },
+            { id: "partial", label: "Частичная проверка" },
+          ],
+        },
+        {
+          id: "fluids",
+          title: "Замена масел и жидкостей",
+          href: "#services",
+          options: [
+            { id: "engine-oil", label: "Моторное масло" },
+            { id: "gearbox-oil", label: "Масло коробки передач" },
+            { id: "differential-oil", label: "Масло дифференциала" },
+            { id: "other-fluids", label: "Другие жидкости" },
+          ],
+        },
+        {
+          id: "ac",
+          title: "Ремонт кондиционера",
+          href: "#services",
+          options: [
+            { id: "diagnostics", label: "Диагностика кондиционера" },
+            { id: "refill", label: "Заправка хладагента" },
+            { id: "repair", label: "Ремонт кондиционера" },
+          ],
+        },
+        {
+          id: "suspension",
+          title: "Подвеска и ходовая",
+          href: "#services",
+          options: [
+            { id: "inspection", label: "Проверка и ремонт подвески" },
+            { id: "shocks", label: "Амортизаторы" },
+            { id: "arms", label: "Рычаги и сайлентблоки" },
+            { id: "brakes", label: "Тормозная система" },
+            { id: "other", label: "Другие работы по ходовой" },
+          ],
+        },
+        {
+          id: "mechanical",
+          title: "Механический ремонт",
+          href: "#services",
+          options: [
+            { id: "engine", label: "Ремонт двигателя" },
+            { id: "gearbox", label: "Ремонт коробки передач" },
+            { id: "other", label: "Другой механический ремонт" },
+          ],
+        },
+        {
+          id: "electrical",
+          title: "Ремонт автоэлектрики",
+          href: "#services",
+          options: [
+            { id: "diagnostics", label: "Диагностика электрики" },
+            { id: "wiring", label: "Ремонт проводки" },
+            { id: "other", label: "Другой электроремонт" },
+          ],
+        },
+        {
+          id: "detailing",
+          title: "Мойка и детейлинг",
+          href: "#services",
+          options: [
+            { id: "interior", label: "Химчистка салона" },
+            { id: "polishing", label: "Полировка" },
+            { id: "wash", label: "Мойка" },
+            { id: "engine-bay", label: "Мойка моторного отсека" },
+            { id: "underbody", label: "Мойка днища" },
+            { id: "full", label: "Полный детейлинг" },
+          ],
+        },
+        {
+          id: "wheels",
+          title: "Ремонт дисков",
+          href: "#services",
+          options: [
+            { id: "repair", label: "Ремонт диска" },
+            { id: "straightening", label: "Правка диска" },
+          ],
+        },
+      ],
+      booking: {
+        title: "Запись",
+        date: "Дата",
+        time: "Время",
+        name: "Имя",
+        phone: "Телефон",
+        vehicle: "Автомобиль",
+        confirm: "Подтвердить запись",
+        close: "Закрыть",
+        missing: "Заполните обязательные поля",
+        summary: "Заявка на запись",
+      },
+    },
+    experience: {
+      heading: "Опыт решает",
+      body: "Более 30 лет практического опыта в обслуживании и ремонте автомобилей, включая работу со спортивными автомобилями, тюнингом и подготовкой.",
+      support: "Этот опыт помогает подходить к диагностике и ремонту практично и внимательно.",
+      photoAlt: "Механик в мастерской Turki Car",
+    },
+    trust: {
+      heading: "Почему Turki Car",
+      points: [
+        "Большой практический опыт",
+        "Диагностика и проверка до ремонта",
+        "Регулярное обслуживание и разные виды ремонта",
+        "Проверка перед покупкой",
+        "Прямая связь по телефону и WhatsApp",
+      ],
+    },
+    process: {
+      heading: "Как мы работаем",
+      intro: "Три понятных шага.",
+      steps: [
+        {
+          title: "Свяжитесь с нами",
+          text: "Позвоните или напишите.",
+        },
+        {
+          title: "Проверяем автомобиль",
+          text: "Определяем проблему и объясняем состояние.",
+        },
+        {
+          title: "Ремонт",
+          text: "Начинаем работу после согласования.",
+        },
+      ],
+    },
+    contact: {
+      heading: "Нужна проверка или обслуживание?",
+      body: "Свяжитесь с нами, и мы поможем разобраться в проблеме.",
+      phoneLabel: "Телефон",
+      whatsappLabel: "WhatsApp",
+      locationLabel: "Адрес",
+      hoursLabel: "Часы работы",
+    },
+    location: {
+      heading: "Наш адрес",
+      intro: "Мастерская на Google Картах.",
+      mapsCta: "Открыть в Google Картах",
+    },
+    footer: {
+      blurb: "Мастерская по ремонту автомобилей и диагностике неисправностей.",
+      servicesHeading: "Услуги",
+      contactHeading: "Контакты",
+      rights: "Все права защищены.",
     },
   },
 };
