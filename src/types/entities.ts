@@ -104,6 +104,8 @@ export interface BusinessSettings {
     closingTime: string;
     closedWeekdays: Weekday[];
     bookingBufferMinutes: number;
+    /** IANA name for the workshop clock, such as Asia/Riyadh. */
+    timeZone: string;
   };
   capacity: {
     maxVehiclesSimultaneously: number;

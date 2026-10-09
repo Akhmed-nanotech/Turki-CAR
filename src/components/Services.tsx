@@ -108,7 +108,9 @@ export function Services() {
       </div>
       {selectedCategory && selectedOption ? (
         <BookingDialog
+          categoryId={selectedCategory.id}
           category={selectedCategory.title}
+          optionId={selectedOption.id}
           option={selectedOption.label}
           copy={copy.services.booking}
           onClose={closeBooking}

@@ -1,6 +1,7 @@
 /**
- * Future customer booking flow. No scheduling logic in this stage.
- * Route UI can be added later without moving these types.
+ * Booking types and the provisional service catalog.
+ * Date and time rules live in src/booking/schedule.ts.
+ * The public form saves through src/app/api/appointments/route.ts.
  */
 export type {
   Appointment,

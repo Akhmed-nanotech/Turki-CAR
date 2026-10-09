@@ -1,68 +1,28 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { demoBusinessSettings } from "@/config/business-settings";
+import {
+  bookingStartTimes,
+  isClosedBookingDate,
+  isPastBookingDate,
+  isPastBookingTime,
+  workshopClock,
+} from "@/booking/schedule";
 import type { SiteCopy } from "@/content/site";
 
 type BookingCopy = SiteCopy["services"]["booking"];
 
-const bookingStartTimes = createBookingStartTimes(
-  demoBusinessSettings.schedule.openingTime,
-  demoBusinessSettings.schedule.closingTime,
-  demoBusinessSettings.schedule.bookingBufferMinutes,
-);
-
-function minutesFromClock(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function clockFromMinutes(total: number) {
-  const hours = Math.floor(total / 60);
-  const minutes = total % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-}
-
-/** Local calendar date as YYYY-MM-DD. Avoids UTC shifting the day. */
-function localDateInputValue(now = new Date()) {
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function isPastBookingDate(value: string, today = localDateInputValue()) {
-  return value !== "" && value < today;
-}
-
-/** A start time has passed only when the chosen day is today in local time. */
-function isPastBookingTime(date: string, time: string, now = new Date()) {
-  if (date !== localDateInputValue(now) || !time) {
-    return false;
-  }
-  const [hours, minutes] = time.split(":").map(Number);
-  const slotStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
-  return slotStart.getTime() < now.getTime();
-}
-
-/** Start times only. A slot must finish by closing, so 22:00 is not selectable. */
-function createBookingStartTimes(opening: string, closing: string, intervalMinutes: number) {
-  const start = minutesFromClock(opening);
-  const end = minutesFromClock(closing);
-  const slots: string[] = [];
-  for (let minute = start; minute + intervalMinutes <= end; minute += intervalMinutes) {
-    slots.push(clockFromMinutes(minute));
-  }
-  return slots;
-}
-
 export function BookingDialog({
+  categoryId,
   category,
+  optionId,
   option,
   copy,
   onClose,
 }: {
+  categoryId: string;
   category: string;
+  optionId: string;
   option: string;
   copy: BookingCopy;
   onClose: () => void;
@@ -75,8 +35,9 @@ export function BookingDialog({
   const [phone, setPhone] = useState("");
   const [vehicle, setVehicle] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const today = localDateInputValue();
+  const today = workshopClock().date;
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -118,22 +79,58 @@ export function BookingDialog({
     };
   }, [onClose]);
 
-  function confirmBooking(event: FormEvent<HTMLFormElement>) {
+  async function confirmBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) {
+      return;
+    }
+    const customerName = name.trim();
+    const customerPhone = phone.trim();
+    const vehicleText = vehicle.trim();
     if (
       !date ||
       isPastBookingDate(date, today) ||
+      isClosedBookingDate(date) ||
       !bookingStartTimes.includes(time) ||
       isPastBookingTime(date, time) ||
-      !name.trim() ||
-      !phone.trim() ||
-      !vehicle.trim()
+      customerName.length < 1 ||
+      customerName.length > 200 ||
+      customerPhone.length < 6 ||
+      customerPhone.length > 40 ||
+      vehicleText.length < 1 ||
+      vehicleText.length > 80
     ) {
       setError(copy.missing);
       return;
     }
     setError("");
-    setSubmitted(true);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          customerName,
+          customerPhone,
+          vehicle: vehicleText,
+          serviceCategory: categoryId,
+          serviceOption: optionId,
+          appointmentDate: date,
+          appointmentTime: time,
+        }),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      const id = body && typeof body === "object" && "id" in body ? body.id : null;
+      if (!response.ok || typeof id !== "string") {
+        setError(response.status === 400 ? copy.missing : copy.saveError);
+        return;
+      }
+      setSubmitted(true);
+    } catch {
+      setError(copy.saveError);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -181,7 +178,18 @@ export function BookingDialog({
         ) : (
           <form className="mt-5 space-y-3" onSubmit={confirmBooking}>
             <p className="text-sm text-muted">{copy.title}</p>
-            <Field label={copy.date} value={date} type="date" min={today} onChange={setDate} />
+            <Field
+              label={copy.date}
+              value={date}
+              type="date"
+              min={today}
+              onChange={(value) => {
+                if (isClosedBookingDate(value)) {
+                  return;
+                }
+                setDate(value);
+              }}
+            />
             <TimeSlotField
               label={copy.time}
               value={time}
@@ -204,7 +212,11 @@ export function BookingDialog({
                 {error}
               </p>
             ) : null}
-            <button type="submit" className="min-h-12 w-full rounded-full bg-accent px-5 text-sm font-semibold text-on-accent transition duration-200 hover:bg-accent-strong active:translate-y-px motion-reduce:transition-none">
+            <button
+              type="submit"
+              disabled={saving}
+              className="min-h-12 w-full rounded-full bg-accent px-5 text-sm font-semibold text-on-accent transition duration-200 hover:bg-accent-strong active:translate-y-px disabled:opacity-60 motion-reduce:transition-none"
+            >
               {copy.confirm}
             </button>
           </form>

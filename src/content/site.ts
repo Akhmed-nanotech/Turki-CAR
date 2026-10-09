@@ -63,6 +63,7 @@ export type SiteCopy = {
       confirm: string;
       close: string;
       missing: string;
+      saveError: string;
       summary: string;
     };
   };
@@ -242,6 +243,7 @@ export const content: Record<Locale, SiteCopy> = {
         confirm: "تأكيد الحجز",
         close: "إغلاق",
         missing: "أكمل البيانات المطلوبة",
+        saveError: "تعذر حفظ الحجز. حاول مرة أخرى.",
         summary: "طلب الحجز",
       },
     },
@@ -438,6 +440,7 @@ export const content: Record<Locale, SiteCopy> = {
         confirm: "Confirm booking",
         close: "Close",
         missing: "Complete the required fields",
+        saveError: "The booking could not be saved. Please try again.",
         summary: "Booking request",
       },
     },
@@ -634,6 +637,7 @@ export const content: Record<Locale, SiteCopy> = {
         confirm: "Подтвердить запись",
         close: "Закрыть",
         missing: "Заполните обязательные поля",
+        saveError: "Не удалось сохранить запись. Попробуйте ещё раз.",
         summary: "Заявка на запись",
       },
     },

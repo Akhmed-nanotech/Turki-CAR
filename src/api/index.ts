@@ -1,7 +1,7 @@
 /**
- * Future HTTP API. Handlers are not implemented.
- * When they are added, they belong in src/app/api as Next.js route handlers
- * and should read settings from src/config/business-settings.ts.
+ * Shared API types.
+ * The booking handler is src/app/api/appointments/route.ts.
+ * It reads schedule rules from src/config/business-settings.ts.
  */
 export type { Appointment, BusinessSettings, Client, Service, Vehicle } from "@/types/entities";
 

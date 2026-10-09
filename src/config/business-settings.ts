@@ -10,6 +10,7 @@ export const demoBusinessSettings: BusinessSettings = {
     closingTime: "22:00",
     closedWeekdays: ["friday"],
     bookingBufferMinutes: 20,
+    timeZone: "Asia/Riyadh",
   },
   capacity: {
     maxVehiclesSimultaneously: 10,
