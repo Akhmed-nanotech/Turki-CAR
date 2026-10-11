@@ -79,6 +79,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const apply = () => {
+      const path = window.location.pathname;
+      if (path === "/admin" || path.startsWith("/admin/")) return;
       document.documentElement.lang = locale;
       document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
       if (document.title !== content[locale].metaTitle) {
