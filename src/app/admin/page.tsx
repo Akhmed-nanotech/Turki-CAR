@@ -10,14 +10,14 @@ export const revalidate = 0;
 export const runtime = "nodejs";
 
 export const metadata = {
-  title: "Booking requests",
+  title: "طلبات الحجز",
   robots: { index: false, follow: false },
 };
 
 const loginMessages: Record<string, string> = {
-  denied: "The password was not accepted.",
-  rejected: "The sign-in request was rejected.",
-  unavailable: "Sign-in is unavailable.",
+  denied: "كلمة المرور غير صحيحة.",
+  rejected: "تم رفض طلب تسجيل الدخول.",
+  unavailable: "تسجيل الدخول غير متاح.",
 };
 
 export default async function AdminPage({
@@ -39,15 +39,16 @@ export default async function AdminPage({
 function LoginForm({ message }: { message?: string }) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-md items-center px-5 py-10">
-      <form action={login} className="glass w-full rounded-3xl p-6" dir="ltr">
-        <h1 className="text-xl font-semibold text-ink">Booking requests</h1>
+      <form action={login} className="glass w-full rounded-3xl p-6" lang="ar" dir="rtl">
+        <h1 className="text-xl font-semibold text-ink">طلبات الحجز</h1>
         <label className="mt-5 block">
-          <span className="mb-1 block text-sm text-muted">Password</span>
+          <span className="mb-1 block text-sm text-muted">كلمة المرور</span>
           <input
             name="password"
             type="password"
             autoComplete="current-password"
             required
+            dir="ltr"
             className="min-h-12 w-full rounded-xl border border-white/15 bg-black/40 px-3 text-base text-ink outline-none"
           />
         </label>
@@ -60,7 +61,7 @@ function LoginForm({ message }: { message?: string }) {
           type="submit"
           className="mt-5 min-h-12 w-full rounded-full bg-accent px-5 text-sm font-semibold text-on-accent"
         >
-          Sign in
+          تسجيل الدخول
         </button>
       </form>
     </main>
@@ -73,30 +74,30 @@ function AppointmentList({
   rows: Awaited<ReturnType<typeof listDiagnosticAppointments>>["rows"];
 }) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 py-8" dir="ltr">
+    <main className="mx-auto w-full max-w-6xl px-5 py-8" lang="ar" dir="rtl">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-ink">Booking requests</h1>
+        <h1 className="text-2xl font-semibold text-ink">طلبات الحجز</h1>
         <form action={logout}>
           <button
             type="submit"
             className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-ink"
           >
-            Log out
+            تسجيل الخروج
           </button>
         </form>
       </div>
       {rows === null ? (
         <p className="mt-6 text-sm text-accent" role="alert">
-          The booking list could not be loaded.
+          تعذر تحميل قائمة الحجوزات.
         </p>
       ) : rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">No booking requests yet.</p>
+        <p className="mt-6 text-sm text-muted">لا توجد طلبات حجز حتى الآن.</p>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-3xl border border-white/10">
-          <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-[52rem] border-collapse text-start text-sm">
             <thead className="bg-black/40 text-muted">
               <tr>
-                {["Date", "Time", "Name", "Phone", "Vehicle", "Service", "Status", "Created"].map((label) => (
+                {["التاريخ", "الوقت", "الاسم", "الهاتف", "السيارة", "الخدمة", "الحالة", "تاريخ الإنشاء"].map((label) => (
                   <th key={label} className="px-3 py-3 font-medium">
                     {label}
                   </th>
@@ -114,7 +115,7 @@ function AppointmentList({
                   </td>
                   <td className="px-3 py-3 text-ink">{vehicleLabel(row)}</td>
                   <td className="px-3 py-3 text-ink">{serviceLabel(row.service_category, row.service_option)}</td>
-                  <td className="px-3 py-3 text-ink">{row.status}</td>
+                  <td className="px-3 py-3 text-ink">{statusLabel(row.status)}</td>
                   <td className="px-3 py-3 text-ink">{createdLabel(row.created_at)}</td>
                 </tr>
               ))}
@@ -141,8 +142,12 @@ function vehicleLabel(row: {
   return details.length > 0 ? `${description} (${details.join(", ")})` : description;
 }
 
+function statusLabel(status: string) {
+  return status === "pending" ? "قيد الانتظار" : status;
+}
+
 function serviceLabel(category: string, option: string | null) {
-  const item = content.en.services.items.find((service) => service.id === category);
+  const item = content.ar.services.items.find((service) => service.id === category);
   const categoryLabel = item?.title ?? category;
   if (!option) return categoryLabel;
   const optionLabel = item?.options.find((choice) => choice.id === option)?.label ?? option;
@@ -152,8 +157,9 @@ function serviceLabel(category: string, option: string | null) {
 function createdLabel(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("ar-SA", {
     timeZone: demoBusinessSettings.schedule.timeZone,
+    numberingSystem: "latn",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
