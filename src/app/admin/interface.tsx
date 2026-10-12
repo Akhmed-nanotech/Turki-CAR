@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
-import { login, logout } from "./actions";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore, useTransition, type ReactNode } from "react";
+import { acceptBooking, login, logout } from "./actions";
 
 export type AdminServiceItem = {
   id: string;
@@ -25,7 +27,7 @@ export type AdminAppointmentRow = {
   created_at: string;
 };
 
-type AdminLocale = "ar" | "en";
+export type AdminLocale = "ar" | "en";
 
 type AdminInterfaceProps = {
   services: Record<AdminLocale, AdminServiceItem[]>;
@@ -39,6 +41,7 @@ const STORAGE_KEY = "turki-admin-locale";
 
 const copy = {
   ar: {
+    brand: "تركي كار",
     title: "طلبات الحجز",
     password: "كلمة المرور",
     signIn: "تسجيل الدخول",
@@ -46,6 +49,18 @@ const copy = {
     loadError: "تعذر تحميل قائمة الحجوزات.",
     empty: "لا توجد طلبات حجز حتى الآن.",
     pending: "قيد الانتظار",
+    accepted: "تم القبول",
+    accept: "قبول",
+    confirmAccept: "قبول هذا الحجز ونقله إلى التشخيص؟",
+    action: "قبول",
+    nav: { bookings: "طلبات الحجز", pipeline: "مسار الإصلاح" },
+    acceptMessages: {
+      rejected: "تم رفض الطلب.",
+      unauthenticated: "يلزم تسجيل الدخول.",
+      invalid: "الطلب غير صالح.",
+      unavailable: "تعذر قبول الحجز.",
+      not_pending: "لم يعد هذا الحجز قيد الانتظار.",
+    },
     columns: ["التاريخ", "الوقت", "الاسم", "الهاتف", "السيارة", "الخدمة", "الحالة", "تاريخ الإنشاء"],
     messages: {
       denied: "كلمة المرور غير صحيحة.",
@@ -55,6 +70,7 @@ const copy = {
     createdLocale: "ar-SA",
   },
   en: {
+    brand: "Turki Car",
     title: "Booking requests",
     password: "Password",
     signIn: "Sign in",
@@ -62,6 +78,18 @@ const copy = {
     loadError: "The booking list could not be loaded.",
     empty: "No booking requests yet.",
     pending: "Pending",
+    accepted: "Accepted",
+    accept: "Accept",
+    confirmAccept: "Accept this booking and move it to diagnosis?",
+    action: "Accept",
+    nav: { bookings: "Booking requests", pipeline: "Repair pipeline" },
+    acceptMessages: {
+      rejected: "The request was rejected.",
+      unauthenticated: "Sign in to continue.",
+      invalid: "The request was not valid.",
+      unavailable: "The booking could not be accepted.",
+      not_pending: "This booking is no longer pending.",
+    },
     columns: ["Date", "Time", "Name", "Phone", "Vehicle", "Service", "Status", "Created"],
     messages: {
       denied: "The password was not accepted.",
@@ -114,7 +142,7 @@ function setAdminLocale(next: AdminLocale) {
   emit();
 }
 
-function useAdminLocale() {
+export function useAdminLocale() {
   const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
@@ -136,13 +164,10 @@ function loginMessage(locale: AdminLocale, errorCode?: string) {
   return copy[locale].messages[errorCode];
 }
 
-export function AdminInterface({ services, timeZone, signedIn, errorCode, rows = null }: AdminInterfaceProps) {
-  const locale = useAdminLocale();
-  const text = copy[locale];
-
+export function useAdminTitle(title: string) {
   useEffect(() => {
     const applyTitle = () => {
-      if (document.title !== text.title) document.title = text.title;
+      if (document.title !== title) document.title = title;
     };
     applyTitle();
     const titleEl = document.querySelector("title");
@@ -150,29 +175,60 @@ export function AdminInterface({ services, timeZone, signedIn, errorCode, rows =
     const observer = new MutationObserver(applyTitle);
     observer.observe(titleEl, { childList: true, characterData: true, subtree: true });
     return () => observer.disconnect();
-  }, [text.title]);
+  }, [title]);
+}
+
+const panel = "rounded-2xl border border-line bg-raised shadow-[0_18px_40px_rgb(0_0_0/0.38)]";
+const primaryButton =
+  "inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:bg-[#5c3036] disabled:text-white/85";
+const quietButton =
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-surface px-4 text-sm text-ink transition-colors hover:border-[#4a535e] disabled:cursor-not-allowed disabled:text-faint";
+
+export function AdminScreen({
+  locale,
+  wide = false,
+  children,
+}: {
+  locale: AdminLocale;
+  wide?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="relative min-h-svh text-ink [color-scheme:dark]">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[#07090d]/92" aria-hidden="true" />
+      <div className={`relative z-10 mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 ${wide ? "max-w-[100rem]" : "max-w-7xl"}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function AdminInterface({ services, timeZone, signedIn, errorCode, rows = null }: AdminInterfaceProps) {
+  const locale = useAdminLocale();
+  const text = copy[locale];
+  useAdminTitle(text.title);
 
   return (
-    <div lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+    <AdminScreen locale={locale}>
       {signedIn ? (
         <AppointmentList locale={locale} rows={rows} services={services[locale]} timeZone={timeZone} />
       ) : (
         <LoginForm message={loginMessage(locale, errorCode)} locale={locale} />
       )}
-    </div>
+    </AdminScreen>
   );
 }
 
 function LanguageSwitcher({ locale }: { locale: AdminLocale }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="inline-flex rounded-lg border border-line bg-[#10141a] p-1">
       {(["ar", "en"] as const).map((choice) => (
         <button
           key={choice}
           type="button"
           aria-pressed={locale === choice}
           onClick={() => setAdminLocale(choice)}
-          className={`inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-ink ${locale === choice ? "font-semibold" : ""}`}
+          className={`inline-flex min-h-10 items-center rounded-md px-3 text-sm ${locale === choice ? "bg-surface text-ink shadow-[inset_0_-2px_0_var(--accent)]" : "text-muted"}`}
         >
           {choice === "ar" ? "العربية" : "EN"}
         </button>
@@ -184,36 +240,80 @@ function LanguageSwitcher({ locale }: { locale: AdminLocale }) {
 function LoginForm({ message, locale }: { message?: string; locale: AdminLocale }) {
   const text = copy[locale];
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center px-5 py-10">
+    <main className="mx-auto flex min-h-[calc(100svh-3rem)] w-full max-w-md flex-col justify-center">
       <div className="mb-4 flex justify-end">
         <LanguageSwitcher locale={locale} />
       </div>
-      <form action={login} className="glass w-full rounded-3xl p-6">
-        <h1 className="text-xl font-semibold text-ink">{text.title}</h1>
-        <label className="mt-5 block">
-          <span className="mb-1 block text-sm text-muted">{text.password}</span>
+      <form action={login} className={`${panel} w-full p-6 sm:p-8`}>
+        <p className="text-sm text-muted">{text.brand}</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">{text.title}</h1>
+        <label className="mt-6 block">
+          <span className="mb-2 block text-sm text-muted">{text.password}</span>
           <input
             name="password"
             type="password"
             autoComplete="current-password"
             required
             dir="ltr"
-            className="min-h-12 w-full rounded-xl border border-white/15 bg-black/40 px-3 text-base text-ink outline-none"
+            className="min-h-12 w-full rounded-lg border border-line bg-[#10141a] px-3 text-base text-ink outline-none"
           />
         </label>
         {message ? (
-          <p className="mt-3 text-sm text-accent" role="alert">
+          <p className="mt-4 rounded-lg border border-[#6a3038] bg-[#2a1518] px-3 py-2 text-sm text-[#ffd5d8]" role="alert">
             {message}
           </p>
         ) : null}
-        <button
-          type="submit"
-          className="mt-5 min-h-12 w-full rounded-full bg-accent px-5 text-sm font-semibold text-on-accent"
-        >
+        <button type="submit" className={`${primaryButton} mt-6 w-full`}>
           {text.signIn}
         </button>
       </form>
     </main>
+  );
+}
+
+export function AdminHeader({ locale, title }: { locale: AdminLocale; title: string }) {
+  const text = copy[locale];
+  return (
+    <header>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm text-muted">{text.brand}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <LanguageSwitcher locale={locale} />
+          <form action={logout}>
+            <button type="submit" className={quietButton}>
+              {text.logOut}
+            </button>
+          </form>
+        </div>
+      </div>
+      <AdminNav locale={locale} />
+    </header>
+  );
+}
+
+function AdminNav({ locale }: { locale: AdminLocale }) {
+  const pathname = usePathname();
+  const text = copy[locale].nav;
+  const links = [
+    { href: "/admin", label: text.bookings, current: pathname === "/admin" },
+    { href: "/admin/pipeline", label: text.pipeline, current: pathname === "/admin/pipeline" },
+  ];
+  return (
+    <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-line">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          aria-current={link.current ? "page" : undefined}
+          className={`inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm ${link.current ? "border-accent text-ink" : "border-transparent text-muted"}`}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -230,77 +330,124 @@ function AppointmentList({
 }) {
   const text = copy[locale];
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 py-8">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-ink">{text.title}</h1>
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher locale={locale} />
-          <form action={logout}>
-            <button
-              type="submit"
-              className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-ink"
-            >
-              {text.logOut}
-            </button>
-          </form>
-        </div>
-      </div>
+    <section>
+      <AdminHeader locale={locale} title={text.title} />
       {rows === null ? (
-        <p className="mt-6 text-sm text-accent" role="alert">
+        <p className="mt-6 rounded-lg border border-[#6a3038] bg-[#2a1518] px-4 py-3 text-sm text-[#ffd5d8]" role="alert">
           {text.loadError}
         </p>
       ) : rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">{text.empty}</p>
+        <p className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>{text.empty}</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-3xl border border-white/10">
-          <table className="w-full min-w-[52rem] border-collapse text-start text-sm">
-            <thead className="bg-black/40 text-muted">
+        <div className={`${panel} mt-6 overflow-x-auto`}>
+          <table className="w-full min-w-[68rem] border-collapse text-start text-sm leading-6">
+            <thead className="bg-[#10141a] text-muted">
               <tr>
                 {text.columns.map((label) => (
-                  <th key={label} className="px-3 py-3 font-medium">
+                  <th key={label} className="px-4 py-3 text-start font-medium">
                     {label}
                   </th>
                 ))}
+                <th className="px-4 py-3 text-start font-medium">{text.action}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-t border-white/10 align-top">
-                  <td className="px-3 py-3 text-ink">{row.appointment_date}</td>
-                  <td className="px-3 py-3 text-ink">{clockTime(row.appointment_time)}</td>
-                  <td className="px-3 py-3 text-ink">{row.customer_name}</td>
-                  <td className="px-3 py-3 text-ink" dir="ltr">
+                <tr key={row.id} className="border-t border-line align-top">
+                  <td className="px-4 py-4 text-ink tabular-nums">{row.appointment_date}</td>
+                  <td className="px-4 py-4 text-ink tabular-nums">{clockTime(row.appointment_time)}</td>
+                  <td className="px-4 py-4 font-medium text-ink">{row.customer_name}</td>
+                  <td className="px-4 py-4 text-ink tabular-nums" dir="ltr">
                     {row.customer_phone}
                   </td>
-                  <td className="px-3 py-3 text-ink">{vehicleLabel(row)}</td>
-                  <td className="px-3 py-3 text-ink">{serviceLabel(services, row.service_category, row.service_option)}</td>
-                  <td className="px-3 py-3 text-ink">{statusLabel(row.status, text.pending)}</td>
-                  <td className="px-3 py-3 text-ink">{createdLabel(row.created_at, text.createdLocale, timeZone)}</td>
+                  <td className="px-4 py-4 text-muted">{vehicleLabel(row)}</td>
+                  <td className="px-4 py-4 text-muted">{serviceLabel(services, row.service_category, row.service_option)}</td>
+                  <td className="px-4 py-4">
+                    <StatusBadge status={row.status} labels={text} />
+                  </td>
+                  <td className="px-4 py-4 text-muted tabular-nums">{createdLabel(row.created_at, text.createdLocale, timeZone)}</td>
+                  <td className="px-4 py-4">
+                    {row.status === "pending" ? <AcceptControl appointmentId={row.id} locale={locale} /> : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-    </main>
+    </section>
   );
 }
 
-function clockTime(value: string) {
+function AcceptControl({ appointmentId, locale }: { appointmentId: string; locale: AdminLocale }) {
+  const text = copy[locale];
+  const [failure, setFailure] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  if (accepted) return <StatusBadge status="accepted" labels={text} />;
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!window.confirm(text.confirmAccept)) return;
+        const data = new FormData(event.currentTarget);
+        startTransition(async () => {
+          const result = await acceptBooking(data);
+          if (result.ok) {
+            setAccepted(true);
+            setFailure(null);
+            return;
+          }
+          setFailure(text.acceptMessages[result.reason]);
+        });
+      }}
+    >
+      <input type="hidden" name="appointmentId" value={appointmentId} />
+      <button type="submit" disabled={pending} className={primaryButton}>
+        {text.accept}
+      </button>
+      {failure ? (
+        <p className="mt-2 max-w-48 rounded-lg border border-[#6a3038] bg-[#2a1518] px-2 py-1 text-sm text-[#ffd5d8]" role="alert">
+          {failure}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+export function clockTime(value: string) {
   return /^\d{2}:\d{2}/.test(value) ? value.slice(0, 5) : value;
 }
 
-function vehicleLabel(row: Pick<AdminAppointmentRow, "vehicle_make" | "vehicle_model" | "vehicle_year" | "license_plate">) {
+export function vehicleLabel(row: Pick<AdminAppointmentRow, "vehicle_make" | "vehicle_model" | "vehicle_year" | "license_plate">) {
   const description = row.vehicle_make === row.vehicle_model ? row.vehicle_make : `${row.vehicle_make} ${row.vehicle_model}`;
   const details = [row.vehicle_year, row.license_plate].filter((item) => item !== null && item !== "");
   return details.length > 0 ? `${description} (${details.join(", ")})` : description;
 }
 
-function statusLabel(status: string, pendingLabel: string) {
-  return status === "pending" ? pendingLabel : status;
+function StatusBadge({ status, labels }: { status: string; labels: { pending: string; accepted: string } }) {
+  const tone =
+    status === "pending"
+      ? "border-[#6a5424] bg-[#2a2416] text-[#f6e7c1]"
+      : status === "accepted"
+        ? "border-[#3d6b54] bg-[#143026] text-[#d7efe4]"
+        : "border-line bg-[#10141a] text-ink";
+  return (
+    <span className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium leading-5 ${tone}`}>
+      {statusLabel(status, labels)}
+    </span>
+  );
 }
 
-function serviceLabel(services: AdminServiceItem[], category: string, option: string | null) {
+function statusLabel(status: string, labels: { pending: string; accepted: string }) {
+  if (status === "pending") return labels.pending;
+  if (status === "accepted") return labels.accepted;
+  return status;
+}
+
+export function serviceLabel(services: AdminServiceItem[], category: string, option: string | null) {
   const item = services.find((service) => service.id === category);
   const categoryLabel = item?.title ?? category;
   if (!option) return categoryLabel;
