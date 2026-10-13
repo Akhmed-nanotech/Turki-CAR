@@ -53,13 +53,14 @@ const copy = {
     accept: "قبول",
     confirmAccept: "قبول هذا الحجز ونقله إلى التشخيص؟",
     action: "قبول",
-    nav: { bookings: "طلبات الحجز", pipeline: "مسار الإصلاح" },
+    nav: { bookings: "طلبات الحجز", pipeline: "مسار الإصلاح", history: "سجل الإصلاح" },
     acceptMessages: {
       rejected: "تم رفض الطلب.",
       unauthenticated: "يلزم تسجيل الدخول.",
       invalid: "الطلب غير صالح.",
       unavailable: "تعذر قبول الحجز.",
       not_pending: "لم يعد هذا الحجز قيد الانتظار.",
+      not_ready: "تعذر قبول الحجز.",
     },
     columns: ["التاريخ", "الوقت", "الاسم", "الهاتف", "السيارة", "الخدمة", "الحالة", "تاريخ الإنشاء"],
     messages: {
@@ -82,13 +83,14 @@ const copy = {
     accept: "Accept",
     confirmAccept: "Accept this booking and move it to diagnosis?",
     action: "Accept",
-    nav: { bookings: "Booking requests", pipeline: "Repair pipeline" },
+    nav: { bookings: "Booking requests", pipeline: "Repair pipeline", history: "Repair history" },
     acceptMessages: {
       rejected: "The request was rejected.",
       unauthenticated: "Sign in to continue.",
       invalid: "The request was not valid.",
       unavailable: "The booking could not be accepted.",
       not_pending: "This booking is no longer pending.",
+      not_ready: "The booking could not be accepted.",
     },
     columns: ["Date", "Time", "Name", "Phone", "Vehicle", "Service", "Status", "Created"],
     messages: {
@@ -300,6 +302,11 @@ function AdminNav({ locale }: { locale: AdminLocale }) {
   const links = [
     { href: "/admin", label: text.bookings, current: pathname === "/admin" },
     { href: "/admin/pipeline", label: text.pipeline, current: pathname === "/admin/pipeline" },
+    {
+      href: "/admin/history",
+      label: text.history,
+      current: pathname === "/admin/history" || pathname.startsWith("/admin/history/"),
+    },
   ];
   return (
     <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-line">
@@ -455,7 +462,7 @@ export function serviceLabel(services: AdminServiceItem[], category: string, opt
   return `${categoryLabel} — ${optionLabel}`;
 }
 
-function createdLabel(value: string, locale: "ar-SA" | "en-GB", timeZone: string) {
+export function formatAdminDateTime(value: string, locale: "ar-SA" | "en-GB", timeZone: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat(locale, {
@@ -468,4 +475,8 @@ function createdLabel(value: string, locale: "ar-SA" | "en-GB", timeZone: string
     minute: "2-digit",
     hourCycle: "h23",
   }).format(date);
+}
+
+function createdLabel(value: string, locale: "ar-SA" | "en-GB", timeZone: string) {
+  return formatAdminDateTime(value, locale, timeZone);
 }

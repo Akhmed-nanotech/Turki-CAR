@@ -4,10 +4,16 @@ import { refresh, revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isSameOriginRequest } from "@/admin/credentials";
-import { acceptAppointment, updateRepairStage } from "@/admin/repairs";
+import { acceptAppointment, completeRepairOrder, updateRepairStage } from "@/admin/repairs";
 import { adminSessionState, clearAdminSession, signInAdmin } from "@/admin/session";
 
-export type AdminMutationReason = "rejected" | "unauthenticated" | "invalid" | "unavailable" | "not_pending";
+export type AdminMutationReason =
+  | "rejected"
+  | "unauthenticated"
+  | "invalid"
+  | "unavailable"
+  | "not_pending"
+  | "not_ready";
 
 export type AdminMutationResult = { ok: true } | { ok: false; reason: AdminMutationReason };
 
@@ -19,6 +25,7 @@ function allowsMutation(requestHeaders: Headers) {
 function refreshAdmin() {
   revalidatePath("/admin");
   revalidatePath("/admin/pipeline");
+  revalidatePath("/admin/history");
   refresh();
 }
 
@@ -62,6 +69,16 @@ export async function changeRepairStage(formData: FormData): Promise<AdminMutati
   const stage = formData.get("stage");
   if (typeof orderId !== "string" || typeof stage !== "string") return { ok: false, reason: "invalid" };
   const result = await updateRepairStage(orderId, stage);
+  if (result.ok) refreshAdmin();
+  return result;
+}
+
+export async function markRepairDelivered(formData: FormData): Promise<AdminMutationResult> {
+  const blocked = await authorizedMutation();
+  if (blocked) return blocked;
+  const orderId = formData.get("orderId");
+  if (typeof orderId !== "string") return { ok: false, reason: "invalid" };
+  const result = await completeRepairOrder(orderId);
   if (result.ok) refreshAdmin();
   return result;
 }

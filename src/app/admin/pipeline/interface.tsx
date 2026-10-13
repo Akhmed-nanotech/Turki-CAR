@@ -13,7 +13,7 @@ import {
   type AdminLocale,
   type AdminServiceItem,
 } from "../interface";
-import { changeRepairStage } from "../actions";
+import { changeRepairStage, markRepairDelivered } from "../actions";
 
 export type PipelineOrder = {
   id: string;
@@ -60,6 +60,9 @@ const copy = {
     move: "نقل",
     moved: "تم النقل",
     confirmMove: (label: string) => `نقل هذا الطلب إلى ${label}؟`,
+    markDelivered: "تسليم السيارة",
+    confirmDeliver: "تأكيد تسليم هذه السيارة؟",
+    delivered: "تم تسجيل التسليم",
     fields: {
       name: "الاسم",
       phone: "الهاتف",
@@ -73,6 +76,15 @@ const copy = {
       invalid: "المرحلة المختارة غير صالحة.",
       unavailable: "تعذر نقل الطلب.",
       not_pending: "تعذر نقل الطلب.",
+      not_ready: "تعذر نقل الطلب.",
+    },
+    deliverMessages: {
+      rejected: "تم رفض الطلب.",
+      unauthenticated: "يلزم تسجيل الدخول.",
+      invalid: "الطلب غير صالح.",
+      unavailable: "تعذر تسجيل التسليم.",
+      not_pending: "تعذر تسجيل التسليم.",
+      not_ready: "هذا الطلب غير جاهز للتسليم.",
     },
   },
   en: {
@@ -83,6 +95,9 @@ const copy = {
     move: "Move",
     moved: "Moved",
     confirmMove: (label: string) => `Move this order to ${label}?`,
+    markDelivered: "Mark as delivered",
+    confirmDeliver: "Mark this vehicle as delivered?",
+    delivered: "Marked as delivered",
     fields: {
       name: "Name",
       phone: "Phone",
@@ -96,6 +111,15 @@ const copy = {
       invalid: "The selected stage is not valid.",
       unavailable: "The order could not be moved.",
       not_pending: "The order could not be moved.",
+      not_ready: "The order could not be moved.",
+    },
+    deliverMessages: {
+      rejected: "The request was rejected.",
+      unauthenticated: "Sign in to continue.",
+      invalid: "The request was not valid.",
+      unavailable: "The vehicle could not be marked as delivered.",
+      not_pending: "The vehicle could not be marked as delivered.",
+      not_ready: "This order is not ready to be marked as delivered.",
     },
   },
 } as const;
@@ -218,8 +242,52 @@ function OrderCard({
           </div>
         ))}
       </dl>
+      {order.stage === "delivery" ? <HandoverControl orderId={order.id} locale={locale} /> : null}
       <StageMove orderId={order.id} stage={order.stage} locale={locale} />
     </article>
+  );
+}
+
+function HandoverControl({ orderId, locale }: { orderId: string; locale: AdminLocale }) {
+  const text = copy[locale];
+  const [failure, setFailure] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  if (done) return <p className="mt-3 text-sm text-muted">{text.delivered}</p>;
+
+  return (
+    <form
+      className="mt-3 border-t border-line pt-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!window.confirm(text.confirmDeliver)) return;
+        const data = new FormData(event.currentTarget);
+        startTransition(async () => {
+          const result = await markRepairDelivered(data);
+          if (result.ok) {
+            setDone(true);
+            setFailure(null);
+            return;
+          }
+          setFailure(text.deliverMessages[result.reason]);
+        });
+      }}
+    >
+      <input type="hidden" name="orderId" value={orderId} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:bg-[#5c3036] disabled:text-white/85"
+      >
+        {text.markDelivered}
+      </button>
+      {failure ? (
+        <p className="mt-2 rounded-lg border border-[#6a3038] bg-[#2a1518] px-2 py-1 text-sm text-[#ffd5d8]" role="alert">
+          {failure}
+        </p>
+      ) : null}
+    </form>
   );
 }
 
