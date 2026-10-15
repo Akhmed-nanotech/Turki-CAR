@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/database/server";
 import { adminSessionState } from "@/admin/session";
+import { keysetQuery, shapeListedPage, type PageCursor, type PageDirection } from "@/admin/list-page";
 import { isRepairStage, type RepairStage } from "@/admin/repair-stages";
 
 export type RepairMutationResult =
@@ -268,22 +269,26 @@ export async function completeRepairOrder(orderId: string): Promise<RepairMutati
   }
 }
 
-export async function listCompletedRepairs() {
+export async function listCompletedRepairs(request: { direction: PageDirection | null; cursor: PageCursor | null }) {
   const state = await adminSessionState();
-  if (state !== "active") return { state, rows: [] as CompletedRepairOrder[] };
+  if (state !== "active") return { state, rows: [] as CompletedRepairOrder[], hasPrevious: false, hasNext: false };
 
   try {
+    const page = keysetQuery("completed_at", request.direction, request.cursor);
     const supabase = createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("repair_orders")
-      .select(completedRepairSelection)
-      .not("completed_at", "is", null)
-      .order("completed_at", { ascending: false })
-      .limit(repairOrderListLimit);
-    if (error) return { state, rows: null };
-    return { state, rows: readCompletedRepairs(data) };
+    let query = supabase.from("repair_orders").select(completedRepairSelection).not("completed_at", "is", null);
+    if (page.filter) query = query.or(page.filter);
+    const { data, error } = await query
+      .order("completed_at", { ascending: page.ascending })
+      .order("id", { ascending: page.ascending })
+      .limit(page.limit);
+    if (error) return { state, rows: null, hasPrevious: false, hasNext: false };
+    const rows = readCompletedRepairs(data);
+    if (!rows) return { state, rows: null, hasPrevious: false, hasNext: false };
+    const shaped = shapeListedPage(rows, request.direction);
+    return { state, rows: shaped.rows, hasPrevious: shaped.hasPrevious, hasNext: shaped.hasNext };
   } catch {
-    return { state, rows: null };
+    return { state, rows: null, hasPrevious: false, hasNext: false };
   }
 }
 

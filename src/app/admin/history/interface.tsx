@@ -63,6 +63,10 @@ const copy = {
     title: "سجل الإصلاح",
     loadError: "تعذر تحميل سجل الإصلاح.",
     empty: "لا توجد سيارات مسلّمة حتى الآن.",
+    pastEnd: "لا توجد سيارات أقدم في السجل.",
+    backToStart: "العودة إلى بداية السجل",
+    previous: "السابق",
+    next: "التالي",
     missing: "لم يتم العثور على هذا الإصلاح المكتمل.",
     emptyEvents: "لا توجد أحداث مراحل مسجّلة.",
     back: "العودة إلى السجل",
@@ -85,6 +89,10 @@ const copy = {
     title: "Repair history",
     loadError: "The repair history could not be loaded.",
     empty: "No vehicles have been handed over yet.",
+    pastEnd: "No older completed repairs.",
+    backToStart: "Back to the start of history",
+    previous: "Previous",
+    next: "Next",
     missing: "This completed repair was not found.",
     emptyEvents: "No stage events were recorded.",
     back: "Back to history",
@@ -118,14 +126,23 @@ function eventLabel(locale: AdminLocale, event: HistoryEvent) {
   return text.moved(stageName(locale, event.fromStage), to);
 }
 
+const quietButton =
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-surface px-4 text-sm text-ink transition-colors hover:border-[#4a535e]";
+
 export function HistoryInterface({
   services,
   timeZone,
   rows,
+  previousHref = null,
+  nextHref = null,
+  pastEnd = false,
 }: {
   services: Record<AdminLocale, AdminServiceItem[]>;
   timeZone: string;
   rows: HistoryOrder[] | null;
+  previousHref?: string | null;
+  nextHref?: string | null;
+  pastEnd?: boolean;
 }) {
   const locale = useAdminLocale();
   const text = copy[locale];
@@ -138,6 +155,13 @@ export function HistoryInterface({
         <p className="mt-6 rounded-lg border border-[#6a3038] bg-[#2a1518] px-4 py-3 text-sm text-[#ffd5d8]" role="alert">
           {text.loadError}
         </p>
+      ) : pastEnd ? (
+        <div className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>
+          <p>{text.pastEnd}</p>
+          <Link href="/admin/history" className={`${quietButton} mt-4`}>
+            {text.backToStart}
+          </Link>
+        </div>
       ) : rows.length === 0 ? (
         <p className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>{text.empty}</p>
       ) : (
@@ -186,6 +210,20 @@ export function HistoryInterface({
           </table>
         </div>
       )}
+      {previousHref || nextHref ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {previousHref ? (
+            <Link href={previousHref} className={quietButton}>
+              {text.previous}
+            </Link>
+          ) : null}
+          {nextHref ? (
+            <Link href={nextHref} className={quietButton}>
+              {text.next}
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </AdminScreen>
   );
 }

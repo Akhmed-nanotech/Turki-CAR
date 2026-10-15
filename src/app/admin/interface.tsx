@@ -35,6 +35,10 @@ type AdminInterfaceProps = {
   signedIn: boolean;
   errorCode?: string;
   rows?: AdminAppointmentRow[] | null;
+  queue?: "pending" | "accepted";
+  previousHref?: string | null;
+  nextHref?: string | null;
+  pastEnd?: boolean;
 };
 
 const STORAGE_KEY = "turki-admin-locale";
@@ -47,11 +51,17 @@ const copy = {
     signIn: "تسجيل الدخول",
     logOut: "تسجيل الخروج",
     loadError: "تعذر تحميل قائمة الحجوزات.",
-    empty: "لا توجد طلبات حجز حتى الآن.",
+    emptyPending: "لا توجد طلبات قيد الانتظار.",
+    emptyAccepted: "لا توجد طلبات مقبولة.",
+    pastEnd: "لا توجد طلبات أخرى في هذه القائمة.",
+    backToStart: "العودة إلى البداية",
+    previous: "السابق",
+    next: "التالي",
+    queuePending: "قيد الانتظار",
+    queueAccepted: "تم القبول",
     pending: "قيد الانتظار",
     accepted: "تم القبول",
     accept: "قبول",
-    confirmAccept: "قبول هذا الحجز ونقله إلى التشخيص؟",
     action: "قبول",
     nav: { bookings: "طلبات الحجز", pipeline: "مسار الإصلاح", history: "سجل الإصلاح" },
     acceptMessages: {
@@ -77,11 +87,17 @@ const copy = {
     signIn: "Sign in",
     logOut: "Log out",
     loadError: "The booking list could not be loaded.",
-    empty: "No booking requests yet.",
+    emptyPending: "No pending bookings.",
+    emptyAccepted: "No accepted bookings.",
+    pastEnd: "No further bookings in this list.",
+    backToStart: "Back to the start",
+    previous: "Previous",
+    next: "Next",
+    queuePending: "Pending",
+    queueAccepted: "Accepted",
     pending: "Pending",
     accepted: "Accepted",
     accept: "Accept",
-    confirmAccept: "Accept this booking and move it to diagnosis?",
     action: "Accept",
     nav: { bookings: "Booking requests", pipeline: "Repair pipeline", history: "Repair history" },
     acceptMessages: {
@@ -205,7 +221,17 @@ export function AdminScreen({
   );
 }
 
-export function AdminInterface({ services, timeZone, signedIn, errorCode, rows = null }: AdminInterfaceProps) {
+export function AdminInterface({
+  services,
+  timeZone,
+  signedIn,
+  errorCode,
+  rows = null,
+  queue = "pending",
+  previousHref = null,
+  nextHref = null,
+  pastEnd = false,
+}: AdminInterfaceProps) {
   const locale = useAdminLocale();
   const text = copy[locale];
   useAdminTitle(text.title);
@@ -213,7 +239,16 @@ export function AdminInterface({ services, timeZone, signedIn, errorCode, rows =
   return (
     <AdminScreen locale={locale}>
       {signedIn ? (
-        <AppointmentList locale={locale} rows={rows} services={services[locale]} timeZone={timeZone} />
+        <AppointmentList
+          locale={locale}
+          rows={rows}
+          services={services[locale]}
+          timeZone={timeZone}
+          queue={queue}
+          previousHref={previousHref}
+          nextHref={nextHref}
+          pastEnd={pastEnd}
+        />
       ) : (
         <LoginForm message={loginMessage(locale, errorCode)} locale={locale} />
       )}
@@ -329,22 +364,57 @@ function AppointmentList({
   rows,
   services,
   timeZone,
+  queue,
+  previousHref,
+  nextHref,
+  pastEnd,
 }: {
   locale: AdminLocale;
   rows: AdminAppointmentRow[] | null;
   services: AdminServiceItem[];
   timeZone: string;
+  queue: "pending" | "accepted";
+  previousHref: string | null;
+  nextHref: string | null;
+  pastEnd: boolean;
 }) {
   const text = copy[locale];
+  const startHref = queue === "accepted" ? "/admin?queue=accepted" : "/admin";
   return (
     <section>
       <AdminHeader locale={locale} title={text.title} />
+      <div className="mt-6 inline-flex rounded-lg border border-line bg-[#10141a] p-1">
+        {(
+          [
+            ["pending", "/admin", text.queuePending],
+            ["accepted", "/admin?queue=accepted", text.queueAccepted],
+          ] as const
+        ).map(([key, href, label]) => (
+          <Link
+            key={key}
+            href={href}
+            aria-current={queue === key ? "page" : undefined}
+            className={`inline-flex min-h-10 items-center rounded-md px-3 text-sm ${queue === key ? "bg-surface text-ink shadow-[inset_0_-2px_0_var(--accent)]" : "text-muted"}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
       {rows === null ? (
         <p className="mt-6 rounded-lg border border-[#6a3038] bg-[#2a1518] px-4 py-3 text-sm text-[#ffd5d8]" role="alert">
           {text.loadError}
         </p>
+      ) : pastEnd ? (
+        <div className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>
+          <p>{text.pastEnd}</p>
+          <Link href={startHref} className={`${quietButton} mt-4`}>
+            {text.backToStart}
+          </Link>
+        </div>
       ) : rows.length === 0 ? (
-        <p className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>{text.empty}</p>
+        <p className={`${panel} mt-6 px-4 py-8 text-sm text-muted`}>
+          {queue === "accepted" ? text.emptyAccepted : text.emptyPending}
+        </p>
       ) : (
         <div className={`${panel} mt-6 overflow-x-auto`}>
           <table className="w-full min-w-[68rem] border-collapse text-start text-sm leading-6">
@@ -382,7 +452,36 @@ function AppointmentList({
           </table>
         </div>
       )}
+      <PageLinks previousHref={previousHref} nextHref={nextHref} previousLabel={text.previous} nextLabel={text.next} />
     </section>
+  );
+}
+
+function PageLinks({
+  previousHref,
+  nextHref,
+  previousLabel,
+  nextLabel,
+}: {
+  previousHref: string | null;
+  nextHref: string | null;
+  previousLabel: string;
+  nextLabel: string;
+}) {
+  if (!previousHref && !nextHref) return null;
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {previousHref ? (
+        <Link href={previousHref} className={quietButton}>
+          {previousLabel}
+        </Link>
+      ) : null}
+      {nextHref ? (
+        <Link href={nextHref} className={quietButton}>
+          {nextLabel}
+        </Link>
+      ) : null}
+    </div>
   );
 }
 
@@ -398,7 +497,6 @@ function AcceptControl({ appointmentId, locale }: { appointmentId: string; local
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        if (!window.confirm(text.confirmAccept)) return;
         const data = new FormData(event.currentTarget);
         startTransition(async () => {
           const result = await acceptBooking(data);

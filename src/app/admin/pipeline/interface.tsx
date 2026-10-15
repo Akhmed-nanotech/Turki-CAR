@@ -59,7 +59,6 @@ const copy = {
     moveTo: "نقل إلى",
     move: "نقل",
     moved: "تم النقل",
-    confirmMove: (label: string) => `نقل هذا الطلب إلى ${label}؟`,
     markDelivered: "تسليم السيارة",
     confirmDeliver: "تأكيد تسليم هذه السيارة؟",
     delivered: "تم تسجيل التسليم",
@@ -94,7 +93,6 @@ const copy = {
     moveTo: "Move to",
     move: "Move",
     moved: "Moved",
-    confirmMove: (label: string) => `Move this order to ${label}?`,
     markDelivered: "Mark as delivered",
     confirmDeliver: "Mark this vehicle as delivered?",
     delivered: "Marked as delivered",
@@ -311,7 +309,6 @@ function StageMove({ orderId, stage, locale }: { orderId: string; stage: RepairS
           setFailure(text.moveMessages.invalid);
           return;
         }
-        if (!window.confirm(text.confirmMove(stageLabels[locale][selected]))) return;
         startTransition(async () => {
           const result = await changeRepairStage(data);
           if (result.ok) {
