@@ -12,6 +12,7 @@ export type RepairMutationResult =
 export type RepairOrder = {
   id: string;
   stage: RepairStage;
+  updatedAt?: string;
   appointment: {
     appointment_date: string;
     appointment_time: string;
@@ -48,9 +49,8 @@ export type CompletedRepairLookup =
   | { state: "active"; status: "unavailable" }
   | { state: "anonymous" | "invalid"; status: "blocked" };
 
-const repairOrderListLimit = 200;
 const repairOrderSelection =
-  "id, stage, appointment:appointments!repair_orders_appointment_id_fkey(appointment_date, appointment_time, customer_name, customer_phone, vehicle_make, vehicle_model, vehicle_year, license_plate, service_category, service_option)";
+  "id, stage, updated_at, appointment:appointments!repair_orders_appointment_id_fkey(appointment_date, appointment_time, customer_name, customer_phone, vehicle_make, vehicle_model, vehicle_year, license_plate, service_category, service_option)";
 const completedRepairSelection =
   "id, stage, completed_at, appointment:appointments!repair_orders_appointment_id_fkey(appointment_date, appointment_time, customer_name, customer_phone, vehicle_make, vehicle_model, vehicle_year, license_plate, service_category, service_option)";
 
@@ -128,7 +128,10 @@ function readRepairOrder(value: unknown): RepairOrder | null {
   if (!id || !isUuid(id) || !stage || !isRepairStage(stage)) return null;
   const appointment = readAppointment(value.appointment ?? value.appointments);
   if (!appointment) return null;
-  return { id, stage, appointment };
+  if (!("updated_at" in value)) return { id, stage, appointment };
+  const updatedAt = readText(value, "updated_at");
+  if (!updatedAt) return null;
+  return { id, stage, updatedAt, appointment };
 }
 
 function readRepairOrders(data: unknown): RepairOrder[] | null {
@@ -194,22 +197,26 @@ function readStageEvents(data: unknown): RepairStageEvent[] | null {
   return events;
 }
 
-export async function listRepairOrders() {
+export async function listRepairOrders(request: { direction: PageDirection | null; cursor: PageCursor | null }) {
   const state = await adminSessionState();
-  if (state !== "active") return { state, rows: [] as RepairOrder[] };
+  if (state !== "active") return { state, rows: [] as RepairOrder[], hasPrevious: false, hasNext: false };
 
   try {
+    const page = keysetQuery("updated_at", request.direction, request.cursor);
     const supabase = createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("repair_orders")
-      .select(repairOrderSelection)
-      .is("completed_at", null)
-      .order("updated_at", { ascending: false })
-      .limit(repairOrderListLimit);
-    if (error) return { state, rows: null };
-    return { state, rows: readRepairOrders(data) };
+    let query = supabase.from("repair_orders").select(repairOrderSelection).is("completed_at", null);
+    if (page.filter) query = query.or(page.filter);
+    const { data, error } = await query
+      .order("updated_at", { ascending: page.ascending })
+      .order("id", { ascending: page.ascending })
+      .limit(page.limit);
+    if (error) return { state, rows: null, hasPrevious: false, hasNext: false };
+    const rows = readRepairOrders(data);
+    if (!rows) return { state, rows: null, hasPrevious: false, hasNext: false };
+    const shaped = shapeListedPage(rows, request.direction);
+    return { state, rows: shaped.rows, hasPrevious: shaped.hasPrevious, hasNext: shaped.hasNext };
   } catch {
-    return { state, rows: null };
+    return { state, rows: null, hasPrevious: false, hasNext: false };
   }
 }
 

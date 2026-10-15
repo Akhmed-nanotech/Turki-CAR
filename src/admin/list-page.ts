@@ -36,7 +36,9 @@ export function decodePageCursor(token: string): PageCursor | null {
  * Rows are shown newest first. `after` keeps rows older than the cursor.
  * `before` keeps rows newer than the cursor. Equal timestamps use the id.
  */
-export function keysetFilter(column: "created_at" | "completed_at", direction: PageDirection, cursor: PageCursor) {
+type ListedTimestamp = "created_at" | "completed_at" | "updated_at";
+
+export function keysetFilter(column: ListedTimestamp, direction: PageDirection, cursor: PageCursor) {
   const at = `"${cursor.at}"`;
   if (direction === "after") {
     return `and(${column}.eq.${at},id.lt.${cursor.id}),${column}.lt.${at}`;
@@ -44,7 +46,7 @@ export function keysetFilter(column: "created_at" | "completed_at", direction: P
   return `and(${column}.eq.${at},id.gt.${cursor.id}),${column}.gt.${at}`;
 }
 
-export function keysetQuery(column: "created_at" | "completed_at", direction: PageDirection | null, cursor: PageCursor | null) {
+export function keysetQuery(column: ListedTimestamp, direction: PageDirection | null, cursor: PageCursor | null) {
   return {
     ascending: direction === "before",
     filter: direction && cursor ? keysetFilter(column, direction, cursor) : null,
@@ -77,6 +79,13 @@ export function historyListHref(link: { direction: PageDirection; cursor: PageCu
   const params = new URLSearchParams();
   params.set(link.direction, encodePageCursor(link.cursor));
   return `/admin/history?${params.toString()}`;
+}
+
+export function pipelineListHref(link: { direction: PageDirection; cursor: PageCursor } | null) {
+  if (!link || !isPageCursor(link.cursor)) return "/admin/pipeline";
+  const params = new URLSearchParams();
+  params.set(link.direction, encodePageCursor(link.cursor));
+  return `/admin/pipeline?${params.toString()}`;
 }
 
 export function isOlderThan(row: PageCursor, cursor: PageCursor) {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLayoutEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { isRepairStage, repairStages, type RepairStage } from "@/admin/repair-stages";
 import {
@@ -56,6 +57,11 @@ const copy = {
     title: "مسار الإصلاح",
     loadError: "تعذر تحميل مسار الإصلاح.",
     emptyStage: "لا توجد سيارات في هذه المرحلة.",
+    moreActive: "توجد سيارات أخرى قيد الإصلاح في الصفحة التالية.",
+    pastEnd: "لا توجد سيارات أقدم في هذا المسار.",
+    backToStart: "العودة إلى أحدث السيارات",
+    previous: "السابق",
+    next: "التالي",
     moveTo: "نقل إلى",
     move: "نقل",
     moved: "تم النقل",
@@ -90,6 +96,11 @@ const copy = {
     title: "Repair pipeline",
     loadError: "The repair pipeline could not be loaded.",
     emptyStage: "No vehicles in this stage.",
+    moreActive: "More active repairs are on the next page.",
+    pastEnd: "No older active repairs.",
+    backToStart: "Back to the newest repairs",
+    previous: "Previous",
+    next: "Next",
     moveTo: "Move to",
     move: "Move",
     moved: "Moved",
@@ -122,12 +133,21 @@ const copy = {
   },
 } as const;
 
+const quietButton =
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-surface px-4 text-sm text-ink transition-colors hover:border-[#4a535e]";
+
 export function PipelineInterface({
   services,
   rows,
+  previousHref = null,
+  nextHref = null,
+  pastEnd = false,
 }: {
   services: Record<AdminLocale, AdminServiceItem[]>;
   rows: PipelineOrder[] | null;
+  previousHref?: string | null;
+  nextHref?: string | null;
+  pastEnd?: boolean;
 }) {
   const locale = useAdminLocale();
   const text = copy[locale];
@@ -140,8 +160,17 @@ export function PipelineInterface({
         <p className="mt-6 rounded-lg border border-[#6a3038] bg-[#2a1518] px-4 py-3 text-sm text-[#ffd5d8]" role="alert">
           {text.loadError}
         </p>
+      ) : pastEnd ? (
+        <div className="mt-6 rounded-2xl border border-line bg-raised px-4 py-8 text-sm text-muted shadow-[0_18px_40px_rgb(0_0_0/0.38)]">
+          <p>{text.pastEnd}</p>
+          <Link href="/admin/pipeline" className={`${quietButton} mt-4`}>
+            {text.backToStart}
+          </Link>
+        </div>
       ) : (
-        <StageBoard locale={locale}>
+        <>
+          {nextHref ? <p className="mt-6 text-sm text-muted">{text.moreActive}</p> : null}
+          <StageBoard locale={locale}>
           <div className="flex w-max gap-4">
             {repairStages.map((stage) => {
               const orders = rows.filter((order) => order.stage === stage);
@@ -172,7 +201,22 @@ export function PipelineInterface({
             })}
           </div>
         </StageBoard>
+        </>
       )}
+      {previousHref || nextHref ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {previousHref ? (
+            <Link href={previousHref} className={quietButton}>
+              {text.previous}
+            </Link>
+          ) : null}
+          {nextHref ? (
+            <Link href={nextHref} className={quietButton}>
+              {text.next}
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </AdminScreen>
   );
 }
