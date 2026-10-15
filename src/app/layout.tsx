@@ -1,19 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Sans_Arabic } from "next/font/google";
+import localFont from "next/font/local";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { PageAtmosphere } from "@/components/PageAtmosphere";
 import "./globals.css";
 
-const arabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
+const arabic = localFont({
+  src: [
+    { path: "../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-arabic",
   display: "swap",
 });
 
-const latin = IBM_Plex_Sans({
-  subsets: ["cyrillic", "latin"],
-  weight: ["400", "500", "600", "700"],
+const latin = localFont({
+  src: [
+    { path: "../fonts/ibm-plex-sans/IBMPlexSans-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/ibm-plex-sans/IBMPlexSans-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/ibm-plex-sans/IBMPlexSans-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/ibm-plex-sans/IBMPlexSans-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-latin",
   display: "swap",
 });
